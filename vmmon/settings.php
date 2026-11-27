@@ -48,7 +48,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){ $a=$_POST['a']??''; $back='general';
    $new[$u]=['u'=>mb_substr($u,0,64),'ap'=>in_array($ap,['md5','sha','sha256','sha384','sha512'],true)?$ap:'sha','aw'=>$aw,'pp'=>in_array($pp,['aes','des'],true)?$pp:'','pw'=>$pw]; }
   set_secret('trap_v3',json_encode(array_values($new))); $_SESSION['flash']=t('Sparat. Mottagaren läser om inställningarna inom ~10 sekunder.','Saved. The receiver reloads the settings within ~10 seconds.'); applog('info','recv','Trap/syslog settings saved'); }
  if($a==='save_zbx'){ $back='zabbix'; set_setting('zbx_active_on',empty($_POST['zbx_active_on'])?'0':'1'); set_setting('zbx_active_port',max(1,min(65535,(int)(($_POST['zbx_active_port']??'')?:10051)))); set_setting('zbx_active_delay',max(10,min(3600,(int)(($_POST['zbx_active_delay']??'')?:60)))); set_secret('zbx_active_token',trim((string)($_POST['zbx_active_token']??''))); $_SESSION['flash']=t('Sparat. Lyssnaren läser om inställningarna inom ~10 sekunder.','Saved. The listener reloads the settings within ~10 seconds.'); applog('info','zabbix','Zabbix active settings saved'); }
- if($a==='api_create'){ $back='api'; require_once 'api_lib.php'; if(api_tokens_ok()){ $_SESSION['api_new']=api_new_token((string)($_POST['name']??''),(int)$_SESSION['u']['id']); applog('info','api','API token created: '.mb_substr((string)($_POST['name']??''),0,80)); } else $_SESSION['flash']=t('Kör SQL-migreringen (sql/3.06.sql) först.','Run the SQL migration (sql/3.06.sql) first.'); }
+ if($a==='api_create'){ $back='api'; require_once 'api_lib.php'; if(api_tokens_ok()){ $_SESSION['api_new']=api_new_token((string)($_POST['name']??''),(int)$_SESSION['u']['id']); applog('info','api','API token created: '.mb_substr((string)($_POST['name']??''),0,80)); } else $_SESSION['flash']=t('Kör SQL-migreringen (sql/3.07.sql) först.','Run the SQL migration (sql/3.07.sql) first.'); }
  if($a==='api_toggle'){ $back='api'; db()->prepare('UPDATE api_tokens SET enabled=1-enabled WHERE id=?')->execute([(int)($_POST['id']??0)]); }
  if($a==='api_del'){ $back='api'; db()->prepare('DELETE FROM api_tokens WHERE id=?')->execute([(int)($_POST['id']??0)]); applog('info','api','API token deleted'); }
  if($a==='mib_upload'){ $back='mibs'; $ok=0; $bad=[]; $F=$_FILES['mibs']??null;
@@ -227,7 +227,7 @@ function show(f,net,comm,id){f.sort(function(a,b){return a.ip.split('.').reduce(
 </div>
 </div>
 <?php elseif($v==='zabbix'): $zon=setting('zbx_active_on','0')==='1'; $zport=(int)setting('zbx_active_port',10051); $zbeat=time()-(int)setting('zbx_active_beat',0); $ztok=secret('zbx_active_token'); $zsrv=[]; $zerr='';
- try{ foreach(db()->query('SELECT s.id,s.name,s.host,s.zbx_host,(SELECT MAX(a.ts) FROM zbx_active a WHERE a.server_id=s.id) lastts,(SELECT COUNT(*) FROM zbx_active a WHERE a.server_id=s.id AND a.ts IS NOT NULL) n,(SELECT COUNT(*) FROM zbx_active a WHERE a.server_id=s.id) nk FROM servers s WHERE s.zbx_active=1 ORDER BY s.name') as $r) $zsrv[]=$r; }catch(Throwable $e){ $zerr=t('Kör sql/3.06.sql (Uppdatera-fliken) först.','Run sql/3.06.sql (Update tab) first.'); }
+ try{ foreach(db()->query('SELECT s.id,s.name,s.host,s.zbx_host,(SELECT MAX(a.ts) FROM zbx_active a WHERE a.server_id=s.id) lastts,(SELECT COUNT(*) FROM zbx_active a WHERE a.server_id=s.id AND a.ts IS NOT NULL) n,(SELECT COUNT(*) FROM zbx_active a WHERE a.server_id=s.id) nk FROM servers s WHERE s.zbx_active=1 ORDER BY s.name') as $r) $zsrv[]=$r; }catch(Throwable $e){ $zerr=t('Kör sql/3.07.sql (Uppdatera-fliken) först.','Run sql/3.07.sql (Update tab) first.'); }
  $zhost=parse_url(base_url(),PHP_URL_HOST)?:'MONITOR-IP'; ?>
 <h3>Zabbix agent – active</h3>
 <?php if($zerr): ?><p class="card badt"><?= h($zerr) ?></p><?php endif; ?>
@@ -315,7 +315,7 @@ HostMetadata=<?= h($ztok) ?></pre>
 <?php elseif($v==='api'): require_once 'api_lib.php'; $ok=api_tokens_ok(); $bu=base_url().'api/v1.php'; $nt=$_SESSION['api_new']??''; unset($_SESSION['api_new']); ?>
 <h3>API</h3>
 <p class="mut"><?= t('Skrivskyddat REST/JSON-API','Read-only REST/JSON API') ?></p>
-<?php if(!$ok): ?><p class="card badt"><?= t('Tabellen api_tokens saknas – kör sql/3.06.sql (Uppdatera-fliken) först.','The api_tokens table is missing – run sql/3.06.sql (Update tab) first.') ?></p><?php else: ?>
+<?php if(!$ok): ?><p class="card badt"><?= t('Tabellen api_tokens saknas – kör sql/3.07.sql (Uppdatera-fliken) först.','The api_tokens table is missing – run sql/3.07.sql (Update tab) first.') ?></p><?php else: ?>
 <?php if($nt): ?><div class="card okt"><b><?= t('Ny token – kopiera den nu, den visas bara en gång:','New token – copy it now, it is shown only once:') ?></b><br><code style="user-select:all;font-size:15px"><?= h($nt) ?></code></div><?php endif; ?>
 <form method="post" class="inline card"><?= csrf_field() ?><input type="hidden" name="a" value="api_create"><label class="f"><?= t('Namn (t.ex. Grafana)','Name (e.g. Grafana)') ?><input name="name" maxlength="80" required></label><button class="btn"><?= t('Skapa token','Create token') ?></button></form>
 <table class="card"><tr><th><?= t('Namn','Name') ?></th><th><?= t('Token börjar med','Token starts with') ?></th><th><?= t('Skapad','Created') ?></th><th><?= t('Senast använd','Last used') ?></th><th>IP</th><th>Status</th><th></th></tr>

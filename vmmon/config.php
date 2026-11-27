@@ -1,5 +1,5 @@
 <?php
-defined('VMMON_VERSION')||define('VMMON_VERSION','3.24');
+defined('VMMON_VERSION')||define('VMMON_VERSION','3.25');
 defined('VMMON_REPO')||define('VMMON_REPO','pellle87/vmmon');
 if(is_file(__DIR__.'/config.local.php')) require __DIR__.'/config.local.php'; // DB-uppgifter ligger i config.local.php så att config.php alltid kan ersättas
 defined('DB_DSN')||define('DB_DSN','mysql:host=localhost;dbname=vmmon;charset=utf8mb4'); defined('DB_USER')||define('DB_USER','vmmon'); defined('DB_PASS')||define('DB_PASS','byt-losenord');

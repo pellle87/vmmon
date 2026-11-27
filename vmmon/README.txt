@@ -245,3 +245,5 @@ v3.22: Compact cards: client count (access points) and ports with link (switches
 v3.23: Compact cards: the client/port count is hidden automatically when the row is too narrow; the Services card shows the number of TCP, URL, PING and CERT checks. Dashboard settings: all explanations as (i) buttons. Update page: the server upload limit text is replaced by a warning when the chosen file is larger than PHP allows; the version status is on its own line. MIB page: shorter help text, name count and upload limit on their own line. No migration.
 
 v3.24: Dashboard settings: the Docker option is on its own row. The (!) ignore button on compact cards is smaller, centred and has a border. No migration.
+
+v3.25: Compact cards: less space between the OS icon and the device name. No migration.

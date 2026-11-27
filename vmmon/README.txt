@@ -269,3 +269,5 @@ v3.34: Map: devices without MACs in their interface list (Proxmox/VMware hosts r
 v3.35: Map: port names for MAC-table links are read from the switch (ifName, also for trunks like Trk1), and the device-side port name is taken from the device interface that owns the MAC. A VM seen on a switch port now links its hypervisor to that port instead of the VM. Manual links can be of type VM (A runs B) for VMs the hypervisor list does not reveal (e.g. a VM on a NAS). No migration.
 
 v3.36: Map: the zoom and pan position is remembered per user and restored the next time the map is opened (Fit view resets it). No migration.
+
+v3.37: Map: a device MAC is learned on every switch along the path, so only the port with the fewest MACs (the edge port) is used now instead of every switch; several NICs/bond members on the same switch give several links. No migration.

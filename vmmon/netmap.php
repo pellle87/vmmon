@@ -42,10 +42,14 @@ $pn=[]; try{ foreach($pdo->query("SELECT server_id,if_index,name FROM net_if") a
 $isVm=[]; foreach($nodes as $id=>$nd){ if(is_int($id)&&$nd['k']==='server'&&isset($vmhost[nm_norm($nd['n'])])&&$vmhost[nm_norm($nd['n'])]!==$id) $isVm[$id]=$vmhost[nm_norm($nd['n'])]; }
 foreach(nm_jget('netmap_links') as $L) if(($L['k']??'')==='vm'&&isset($nodes[(int)$L['a']],$nodes[(int)$L['b']])) $isVm[(int)$L['b']]=(int)$L['a'];
 $hasMac=array_flip(array_values($byMac)); foreach($nodes as $id=>$nd){ if(!is_int($id)||isset($hasMac[$id])||in_array($nd['k'],['switch','router','ap'],true)||$nd['ip']===''||empty($arpm[$nd['ip']])) continue; if(!isset($byMac[$arpm[$nd['ip']]])) $byMac[$arpm[$nd['ip']]]=$id; }
-foreach($fdbs as $sw=>$list){ $lldpPorts=[]; foreach($nbrs[$sw]??[] as $x) if(!empty($x['li'])) $lldpPorts[(int)$x['li']]=1; $seen=[];
- foreach($list as $x){ $t=$byMac[$x['m']]??null; if($t===null||$t===$sw||isset($lldpPorts[(int)$x['i']])||(int)$x['c']>40) continue; if(isset($isVm[$t])) $t=$isVm[$t]; if($t===$sw) continue; if(in_array($nodes[$t]['k'],['switch','router','ap'],true)) continue; $key=$sw.'-'.$x['i'].'-'.$t; if(isset($seen[$key])) continue; $seen[$key]=1;
-  $dupe=false; foreach($links as $L) if(!$L['m']&&(($L['a']===(string)$sw&&$L['b']===(string)$t)||($L['a']===(string)$t&&$L['b']===(string)$sw))){ $dupe=true; break; } if($dupe) continue;
-  $links[]=['a'=>(string)$sw,'b'=>(string)$t,'ap'=>$fdbn[$sw][(int)$x['i']]??($pn[$sw][(int)$x['i']]??('if '.$x['i'])),'bp'=>(string)($macif[$x['m']][$t]??''),'m'=>0,'p'=>'MAC']; } }
+// En MAC lärs på varje switch längs vägen; den riktiga porten är den med färst MAC (kantporten), inte upplänkarna
+$best=[]; foreach($fdbs as $sw=>$list){ $lldpPorts=[]; foreach($nbrs[$sw]??[] as $x) if(!empty($x['li'])) $lldpPorts[(int)$x['li']]=1;
+ foreach($list as $x){ if(isset($lldpPorts[(int)$x['i']])||(int)$x['c']>40||!isset($byMac[$x['m']])||$byMac[$x['m']]===$sw) continue; $m=$x['m']; $c=(int)$x['c'];
+  if(!isset($best[$m])||$c<$best[$m]['c']) $best[$m]=['c'=>$c,'e'=>[]]; if($c===$best[$m]['c']) $best[$m]['e'][]=[$sw,(int)$x['i']]; } }
+$seen=[]; foreach($best as $m=>$bm){ $t=$byMac[$m]; if(isset($isVm[$t])) $t=$isVm[$t]; if(in_array($nodes[$t]['k'],['switch','router','ap'],true)) continue;
+ foreach($bm['e'] as [$sw,$ix]){ if($t===$sw) continue; $key=$sw.'-'.$ix.'-'.$t; if(isset($seen[$key])) continue; $seen[$key]=1;
+  $dupe=false; foreach($links as $L) if($L['p']!=='MAC'&&(($L['a']===(string)$sw&&$L['b']===(string)$t)||($L['a']===(string)$t&&$L['b']===(string)$sw))){ $dupe=true; break; } if($dupe) continue;
+  $links[]=['a'=>(string)$sw,'b'=>(string)$t,'ap'=>$fdbn[$sw][$ix]??($pn[$sw][$ix]??('if '.$ix)),'bp'=>(string)($macif[$m][$t]??''),'m'=>0,'p'=>'MAC']; } }
 // Virtuella maskiner: kopplas till sin hypervisor (via namn)
 foreach($nodes as $id=>$nd){ if(!is_int($id)||$nd['k']!=='server') continue; $hid=$vmhost[nm_norm($nd['n'])]??null; if($hid&&$hid!==$id&&isset($nodes[$hid])) $links[]=['a'=>(string)$hid,'b'=>(string)$id,'ap'=>'','bp'=>'','m'=>0,'p'=>'VM']; }
 $man=nm_jget('netmap_links'); foreach($man as $L){ if(!isset($nodes[(string)$L['a']])||!isset($nodes[(string)$L['b']])) continue; $links[]=['a'=>(string)$L['a'],'b'=>(string)$L['b'],'ap'=>(string)($L['ap']??''),'bp'=>(string)($L['bp']??''),'m'=>1,'p'=>(($L['k']??'')==='vm'?'VM':''),'id'=>$L['id'],'l'=>(string)($L['l']??'')]; }

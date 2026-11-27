@@ -58,7 +58,6 @@ $tot=0; $ndev=0; foreach($links as $L) if(!$L['m']) $tot++; foreach($nbrs as $l)
 <?php if($adm): ?><form method="post" class="inline" onsubmit="return confirm('<?= h(t('Återställ alla placeringar?','Reset all positions?')) ?>')"><?= csrf_field() ?><input type="hidden" name="a" value="resetpos"><button class="btn sm"><?= t('Ordna om automatiskt','Re-arrange automatically') ?></button></form><?php endif; ?>
 </div>
 <div class="nmwrap"><svg id="nm" xmlns="http://www.w3.org/2000/svg"></svg><div id="nmtip" class="nmtip" hidden></div></div>
-<p class="mut"><?= t('Kopplingarna hämtas med LLDP och CDP (via SNMP) från enheter som stöder det, och uppdateras ungefär var 15:e minut. Dra i enheter för att flytta dem, och scrolla för att zooma.','Links are read with LLDP and CDP (over SNMP) from devices that support them and refreshed about every 15 minutes. Drag devices to move them, and scroll to zoom.') ?> <?= $tot===0?t('Inga LLDP/CDP-grannar har hittats än. Aktivera LLDP på enheterna och vänta på nästa SNMP-runda, eller lägg till kopplingar för hand nedan.','No LLDP/CDP neighbours found yet. Enable LLDP on the devices and wait for the next SNMP round, or add links by hand below.'):'' ?></p>
 <?php if($adm): ?>
 <h3><?= t('Egna kopplingar','Manual links') ?></h3>
 <form method="post" class="card inline" style="align-items:flex-end;gap:10px"><?= csrf_field() ?><input type="hidden" name="a" value="addlink">

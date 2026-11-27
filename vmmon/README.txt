@@ -261,3 +261,5 @@ v3.30: Map: each separate physical network (connected group of devices) is drawn
 v3.31: Map: the checkbox choices (port names, grid, unknown neighbours, unlinked devices) are remembered per user (stored in user_prefs). No migration.
 
 v3.32: Map: servers, storage and firewalls without LLDP are now placed by the switch MAC address table (BRIDGE-MIB / Q-BRIDGE-MIB, read in the slow round): a device whose MAC (from its interfaces) is learned on a switch access port gets a link to that port (ports with an LLDP neighbour or more than 40 MACs are ignored). VMs are linked to their hypervisor by name (dotted line). Unknown neighbours no longer show garbage names: binary chassis IDs are decoded as MAC/IP and unreadable text is dropped. No migration.
+
+v3.33: Map: removed the help text under the map. No migration.

@@ -1,0 +1,14 @@
+[Unit]
+Description=VM Monitor Zabbix active-lyssnare
+After=network-online.target mysql.service mariadb.service
+
+[Service]
+# Kör som samma användare som webbservern (behöver läsa config.local.php och secret.php)
+User=www-data
+WorkingDirectory=/var/www/vmmon
+ExecStart=/usr/bin/php /var/www/vmmon/zbx-active.php
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

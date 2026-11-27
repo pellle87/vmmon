@@ -1,0 +1,1 @@
+<?php require '../config.php'; require '../lib.php'; need_login(); track_user(); session_write_close(); ignore_user_abort(true); header('Content-Type: application/json'); if(time()-(int)setting('worker_beat',0)>=30) poll_all(); echo '{}';

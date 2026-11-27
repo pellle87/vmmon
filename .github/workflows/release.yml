@@ -1,0 +1,31 @@
+# Push a tag like v2.96 and a GitHub Release is created with Vmmon_2.96.zip (used by the in-app updater)
+# and vmmon.zip (same file, fixed name, used by install-vmmon.sh).
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches vmmon/config.php
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          CFG=$(grep -o "VMMON_VERSION','[0-9.]*" vmmon/config.php | grep -o "[0-9.]*$")
+          [ "$TAG" = "$CFG" ] || { echo "Tag $TAG does not match VMMON_VERSION $CFG"; exit 1; }
+      - name: Build zip
+        run: |
+          ./make-release.sh
+          cp "Vmmon_${GITHUB_REF_NAME#v}.zip" vmmon.zip
+      - name: Release notes from vmmon/README.txt
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          grep -E "^v${V//./\\.}:" vmmon/README.txt | sed -E 's/^v[0-9.]+: *//' > notes.txt || true
+          [ -s notes.txt ] || echo "VM Monitor $V" > notes.txt
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$GITHUB_REF_NAME" "Vmmon_${GITHUB_REF_NAME#v}.zip" vmmon.zip --title "VM Monitor ${GITHUB_REF_NAME#v}" --notes-file notes.txt

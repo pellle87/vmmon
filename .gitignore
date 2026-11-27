@@ -1,0 +1,8 @@
+# local configuration and runtime data – never commit
+vmmon/config.local.php
+vmmon/secret.php
+vmmon/backups/*
+!vmmon/backups/.gitkeep
+vmmon/update_tmp/
+*.log
+*.zip

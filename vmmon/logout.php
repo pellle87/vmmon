@@ -1,0 +1,1 @@
+<?php require 'config.php'; if(!empty($_SESSION['u'])){ try{ db()->prepare('UPDATE users SET logged_in=0 WHERE id=?')->execute([$_SESSION['u']['id']]); }catch(Throwable $e){} } session_destroy(); header('Location: login.php');

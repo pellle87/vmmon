@@ -1,0 +1,17 @@
+[Unit]
+Description=VM Monitor mottagare för SNMP-traps och syslog
+After=network-online.target mysql.service mariadb.service
+
+[Service]
+# Kör som samma användare som webbservern (behöver läsa config.local.php och secret.php)
+User=www-data
+WorkingDirectory=/var/www/vmmon
+ExecStart=/usr/bin/php /var/www/vmmon/recv.php
+# Tillåter att binda portar (UDP/TCP) under 1024 (162 och 514) utan att köra som root
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

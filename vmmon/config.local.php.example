@@ -1,0 +1,4 @@
+<?php // Kopiera till config.local.php och fyll i dina databasuppgifter
+const DB_DSN='mysql:host=localhost;dbname=vmmon;charset=utf8mb4';
+const DB_USER='vmmon';
+const DB_PASS='ditt-losenord';

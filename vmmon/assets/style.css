@@ -296,3 +296,5 @@ form.card.inline{align-items:flex-end}
 
 .pm{position:fixed;z-index:9999;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;min-width:140px;box-shadow:0 8px 24px rgba(0,0,0,.45)}.pm b{font-size:12px;color:var(--mut);padding:2px 6px}.pm button{font:inherit;font-size:13px;text-align:left;background:var(--inp);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;cursor:pointer}.pm button:hover{border-color:var(--warn)}
 .srv.cmp .ign.mini.on{font-size:8px;letter-spacing:-1px;padding:1px 0 0 0}
+
+.srv.cmp .ign.mini,.srv.cmp .ign.mini.on{padding:0;line-height:0;font-size:0}.srv.cmp .ign.mini svg{display:block}

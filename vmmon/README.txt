@@ -251,3 +251,5 @@ v3.25: Compact cards: less space between the OS icon and the device name. No mig
 v3.26: Services card in compact view: the TCP, URL, PING and CERT counts are coloured green, yellow or red by the worst status among those checks (down, slow response, certificate close to expiry). No migration.
 
 v3.27: The Ignore button on dashboard cards is replaced by Pause: it pauses alerts for the device like the Pause alerts box on the device page (choose 30 min to indefinitely), and shows Paused/Resume when paused. Cards that are paused and not healthy are grey and counted as Paused. The old ignored flag is no longer used. No migration.
+
+v3.28: The small status button on compact cards uses SVG icons (exclamation mark and pause) so they are exactly centred. No migration.

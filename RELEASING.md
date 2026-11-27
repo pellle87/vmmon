@@ -4,7 +4,7 @@
 2. Keep `vmmon/sql/schema.sql` up to date and keep **only** the newest migration file (`vmmon/sql/<version>.sql`) next to it.
    The migration must be safe to run twice (guarded `ALTER`s).
 3. Add a line `v<version>: what changed` to `vmmon/README.txt` – it is shown as release notes and in the updater.
-4. Commit and push, then tag:
+4. Commit and push. Then either run **Actions → Release → Run workflow**, or tag:
 
    ```bash
    git tag v2.96 && git push origin v2.96

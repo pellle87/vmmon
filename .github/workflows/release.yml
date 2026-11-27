@@ -1,9 +1,10 @@
-# Push a tag like v2.96 and a GitHub Release is created with Vmmon_2.96.zip (used by the in-app updater)
-# and vmmon.zip (same file, fixed name, used by install-vmmon.sh).
+# Creates a GitHub Release with Vmmon_<version>.zip (used by the in-app updater) and vmmon.zip (fixed name, used by install-vmmon.sh).
+# Run it either by pushing a tag like v3.02, or manually: Actions -> Release -> Run workflow (the tag is then created from vmmon/config.php).
 name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -11,21 +12,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check that the tag matches vmmon/config.php
+      - name: Work out the version
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
           CFG=$(grep -o "VMMON_VERSION','[0-9.]*" vmmon/config.php | grep -o "[0-9.]*$")
-          [ "$TAG" = "$CFG" ] || { echo "Tag $TAG does not match VMMON_VERSION $CFG"; exit 1; }
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            TAG="$GITHUB_REF_NAME"
+            [ "${TAG#v}" = "$CFG" ] || { echo "Tag $TAG does not match VMMON_VERSION $CFG"; exit 1; }
+          else
+            TAG="v$CFG"
+          fi
+          echo "TAG=$TAG" >> "$GITHUB_ENV"; echo "VER=${TAG#v}" >> "$GITHUB_ENV"
       - name: Build zip
         run: |
           ./make-release.sh
-          cp "Vmmon_${GITHUB_REF_NAME#v}.zip" vmmon.zip
+          cp "Vmmon_${VER}.zip" vmmon.zip
       - name: Release notes from vmmon/README.txt
         run: |
-          V="${GITHUB_REF_NAME#v}"
-          grep -E "^v${V//./\\.}:" vmmon/README.txt | sed -E 's/^v[0-9.]+: *//' > notes.txt || true
-          [ -s notes.txt ] || echo "VM Monitor $V" > notes.txt
-      - name: Create release
+          grep -E "^v${VER//./\\.}:" vmmon/README.txt | sed -E 's/^v[0-9.]+: *//' > notes.txt || true
+          [ -s notes.txt ] || echo "VM Monitor $VER" > notes.txt
+      - name: Create or update the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" "Vmmon_${GITHUB_REF_NAME#v}.zip" vmmon.zip --title "VM Monitor ${GITHUB_REF_NAME#v}" --notes-file notes.txt
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "Vmmon_${VER}.zip" vmmon.zip --clobber
+          else
+            gh release create "$TAG" "Vmmon_${VER}.zip" vmmon.zip --target "$GITHUB_SHA" --title "VM Monitor ${VER}" --notes-file notes.txt
+          fi

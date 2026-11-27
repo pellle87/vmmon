@@ -14,4 +14,4 @@ try{
   foreach(['card_order','card_order_compact'] as $col){ try{ $q=$pdo->prepare("SELECT $col FROM users WHERE id=?"); $q->execute([$uid]); $o=array_filter(explode(',',(string)$q->fetchColumn()),fn($x)=>$x!==''&&$x!=='h'.$id); $pdo->prepare("UPDATE users SET $col=? WHERE id=?")->execute([implode(',',$o),$uid]); }catch(Throwable $e){} }
   echo '{"ok":true}'; exit; }
  http_response_code(400); echo '{"ok":false}';
-}catch(Throwable $e){ http_response_code(500); echo json_encode(['ok'=>false,'error'=>'sql/3.14.sql saknas?']); }
+}catch(Throwable $e){ http_response_code(500); echo json_encode(['ok'=>false,'error'=>'sql/3.15.sql saknas?']); }

@@ -241,3 +241,5 @@ v3.20: Dashboard settings are split into General, Normal view and Compact view (
 v3.21: Compact view settings: shorter labels, explanations as (i) buttons. With "Show usage" on, access points also show the number of clients and switches the number of ports with link. No migration.
 
 v3.22: Compact cards: client count (access points) and ports with link (switches) are shown as plain numbers at the right edge of the usage row. General dashboard settings: explanations as (i) buttons, the alert sound label removed. No migration.
+
+v3.23: Compact cards: the client/port count is hidden automatically when the row is too narrow; the Services card shows the number of TCP, URL, PING and CERT checks. Dashboard settings: all explanations as (i) buttons. Update page: the server upload limit text is replaced by a warning when the chosen file is larger than PHP allows; the version status is on its own line. MIB page: shorter help text, name count and upload limit on their own line. No migration.

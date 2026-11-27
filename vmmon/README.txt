@@ -235,3 +235,5 @@ v3.17: Update, backup and restore now show progress while they run (files packed
 v3.18: Compact view can show usage on the cards instead of the status text: CPU, memory and fullest disk on servers, hosts and storage; total traffic in/out on switches, access points and firewalls (physical ports only, so trunks, VLANs and bridges are not counted twice; access points use the uplink port); CPU temperature and power on BMC. Devices without data keep the status text. New options under Settings > Dashboard settings: "Show usage in compact view" and "Show the coloured left border" (both can be switched on/off).
 
 v3.19: BMC cards in compact view show the two hottest CPU temperatures (CPU1 and CPU2 when there are two) plus power. The (!) ignore button on compact cards is coloured by status (yellow on warning, red on critical, grey when ignoring). No migration.
+
+v3.20: Dashboard settings are split into General, Normal view and Compact view (thresholds moved there from General settings, after the alert sound). More space under the Auto update and Manual update headings. No migration.

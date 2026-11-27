@@ -1,11 +1,22 @@
 # VM Monitor (vmmon)
 
-**Official website and documentation: <https://vmmonitor.kallstrom.me>**
+**Official website and documentation: <https://vm-monitor.com>**
 
 A self-hosted monitoring dashboard for small and mid-sized infrastructure, written in PHP 8 + MariaDB/MySQL.
 Servers (Linux/Windows), virtualisation hosts, network devices, storage, BMC/IPMI, TCP/URL/certificate checks,
 SNMP traps and syslog – with alert rules you can read, e-mail / Telegram / webhook / SMS notifications and a compact dashboard.
 
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Dashboard](screenshots/dash-normal.jpg) | ![Compact dashboard](screenshots/dash-compact.jpg) |
+| ![Servers](screenshots/servers.jpg) | ![Server details](screenshots/server-top.jpg) |
+| ![Network devices](screenshots/network.jpg) | ![Services](screenshots/services.jpg) |
+| ![Alerts](screenshots/alerts.jpg) | ![History](screenshots/history.jpg) |
+
+More screenshots and the full documentation: <https://vm-monitor.com>
 
 ## Quick install (Debian 11/12/13, Ubuntu 22.04/24.04)
 
@@ -30,7 +41,7 @@ Requirements: PHP 8+ with `curl`, `openssl`, `pdo_mysql`, `snmp`, `zip`, `zlib`;
 3. Copy `config.local.php.example` to `config.local.php` and enter the database details.
 4. Install the services `vmmon-worker.service` (and `vmmon-zabbix.service`, `vmmon-recv.service` if you use them) from the `vmmon` folder.
 
-Full documentation (install, dashboard, checks, alert rules, SNMP/MIBs, traps and syslog): <https://vmmonitor.kallstrom.me>.
+Full documentation (install, dashboard, checks, alert rules, SNMP/MIBs, traps and syslog): <https://vm-monitor.com>.
 
 ## Updating
 
@@ -50,6 +61,7 @@ The server needs outbound HTTPS to `api.github.com` and `github.com` for the in-
 |---|---|
 | `vmmon/` | The application (this folder is what ends up in the release zip) |
 | `install-vmmon.sh` | Automatic installer |
+| `screenshots/` | Images used in this README |
 | `LICENSE` | License terms |
 | `make-release.sh` | Builds `Vmmon_<version>.zip` locally |
 | `.github/workflows/release.yml` | Builds and publishes a release when you push a `v<version>` tag |

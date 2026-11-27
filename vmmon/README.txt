@@ -237,3 +237,5 @@ v3.18: Compact view can show usage on the cards instead of the status text: CPU,
 v3.19: BMC cards in compact view show the two hottest CPU temperatures (CPU1 and CPU2 when there are two) plus power. The (!) ignore button on compact cards is coloured by status (yellow on warning, red on critical, grey when ignoring). No migration.
 
 v3.20: Dashboard settings are split into General, Normal view and Compact view (thresholds moved there from General settings, after the alert sound). More space under the Auto update and Manual update headings. No migration.
+
+v3.21: Compact view settings: shorter labels, explanations as (i) buttons. With "Show usage" on, access points also show the number of clients and switches the number of ports with link. No migration.

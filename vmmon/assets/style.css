@@ -293,3 +293,6 @@ form.card.inline{align-items:flex-end}
 .srv.cmp .ign.mini{width:17px;height:17px;top:7px;right:7px;font-size:11px;display:grid;place-items:center;padding:1px 0 0;box-sizing:border-box;border:1px solid rgba(0,0,0,.45)}.srv.cmp .cn.hasign{padding-right:22px}
 .srv.cmp.warn .ign.mini:not(.on){border-color:color-mix(in srgb,var(--warn) 55%,#000)}.srv.cmp.bad .ign.mini:not(.on){border-color:color-mix(in srgb,var(--bad) 55%,#000)}
 .srv.cmp .cn{gap:0}.srv.cmp .cn .ti{margin-right:5px}.srv.cmp .cn .ti.vm{margin-right:4px}
+
+.pm{position:fixed;z-index:9999;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;min-width:140px;box-shadow:0 8px 24px rgba(0,0,0,.45)}.pm b{font-size:12px;color:var(--mut);padding:2px 6px}.pm button{font:inherit;font-size:13px;text-align:left;background:var(--inp);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;cursor:pointer}.pm button:hover{border-color:var(--warn)}
+.srv.cmp .ign.mini.on{font-size:8px;letter-spacing:-1px;padding:1px 0 0 0}

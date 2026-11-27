@@ -5,7 +5,7 @@ if($v==='evt'){ // Alla warning/critical-händelser med orsak till att notis (in
  $fs=($_GET['sev']??'')==='critical'?'critical':(($_GET['sev']??'')==='warning'?'warning':''); $fn=in_array($_GET['nt']??'',['0','1'],true)?$_GET['nt']:''; $fq=trim((string)($_GET['q']??'')); $fd=max(1,min(365,(int)($_GET['d']??7))); $LIMe=500;
  $w=['started>=NOW()-INTERVAL '.$fd.' DAY']; $p=[]; if($fs){ $w[]='sev=?'; $p[]=$fs; } if($fn!==''){ $w[]='notified=?'; $p[]=(int)$fn; } if($fq!==''){ $w[]='(server_name LIKE ? OR kind LIKE ? OR detail LIKE ? OR reason LIKE ?)'; for($i=0;$i<4;$i++) $p[]='%'.$fq.'%'; }
  $wh=' WHERE '.implode(' AND ',$w); $rows=[]; $tot=0; $err='';
- try{ $c=db()->prepare('SELECT COUNT(*) FROM alert_events'.$wh); $c->execute($p); $tot=(int)$c->fetchColumn(); $q=db()->prepare('SELECT *,TIMESTAMPDIFF(SECOND,started,NOW()) age FROM alert_events'.$wh.' ORDER BY id DESC LIMIT '.$LIMe); $q->execute($p); $rows=$q->fetchAll(); }catch(Throwable $e){ $err=t('Tabellen alert_events saknas – kör sql/3.01.sql','Table alert_events is missing – run sql/3.01.sql'); }
+ try{ $c=db()->prepare('SELECT COUNT(*) FROM alert_events'.$wh); $c->execute($p); $tot=(int)$c->fetchColumn(); $q=db()->prepare('SELECT *,TIMESTAMPDIFF(SECOND,started,NOW()) age FROM alert_events'.$wh.' ORDER BY id DESC LIMIT '.$LIMe); $q->execute($p); $rows=$q->fetchAll(); }catch(Throwable $e){ $err=t('Tabellen alert_events saknas – kör sql/3.02.sql','Table alert_events is missing – run sql/3.02.sql'); }
  $KL=metric_labels();
  top(t('Historik','History')); ?>
 <h2><?= t('Historik','History') ?></h2>

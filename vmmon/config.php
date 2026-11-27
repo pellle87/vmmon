@@ -1,5 +1,5 @@
 <?php
-defined('VMMON_VERSION')||define('VMMON_VERSION','3.01');
+defined('VMMON_VERSION')||define('VMMON_VERSION','3.02');
 if(is_file(__DIR__.'/config.local.php')) require __DIR__.'/config.local.php'; // DB-uppgifter ligger i config.local.php så att config.php alltid kan ersättas
 defined('DB_DSN')||define('DB_DSN','mysql:host=localhost;dbname=vmmon;charset=utf8mb4'); defined('DB_USER')||define('DB_USER','vmmon'); defined('DB_PASS')||define('DB_PASS','byt-losenord');
 function is_https(){ if(!empty($_SERVER['HTTPS'])&&$_SERVER['HTTPS']!=='off') return true; $tp=array_filter(array_map('trim',explode(',',(string)setting('trusted_proxies','')))); return strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO']??''))==='https'&&in_array((string)($_SERVER['REMOTE_ADDR']??''),$tp,true); }

@@ -14,7 +14,7 @@ try{
    try{ $pdo->prepare('INSERT INTO dash_graphs(user_id,w,v,graphs,lay) VALUES(?,?,?,?,?)')->execute([$uid,$w,$v,$js,lay_n($_POST['lay']??1)]); }
    catch(Throwable $e){ try{ $pdo->prepare('INSERT INTO dash_graphs(user_id,w,v,graphs) VALUES(?,?,?,?)')->execute([$uid,$w,$v,$js]); }catch(Throwable $e2){ $pdo->prepare('INSERT INTO dash_graphs(user_id,w,graphs) VALUES(?,?,?)')->execute([$uid,$w,$js]); } }
    $id=(int)$pdo->lastInsertId(); }
-  if($id&&isset($_POST['cw'],$_POST['ch'])){ try{ $pdo->prepare('UPDATE dash_graphs SET cw=?,ch=? WHERE id=? AND user_id=?')->execute([max(1,min(4,(int)$_POST['cw'])),max(1,min(3,(int)$_POST['ch'])),$id,$uid]); }catch(Throwable $e){ http_response_code(500); echo json_encode(['ok'=>false,'error'=>'sql/3.01.sql saknas?']); exit; } }
+  if($id&&isset($_POST['cw'],$_POST['ch'])){ try{ $pdo->prepare('UPDATE dash_graphs SET cw=?,ch=? WHERE id=? AND user_id=?')->execute([max(1,min(4,(int)$_POST['cw'])),max(1,min(3,(int)$_POST['ch'])),$id,$uid]); }catch(Throwable $e){ http_response_code(500); echo json_encode(['ok'=>false,'error'=>'sql/3.02.sql saknas?']); exit; } }
   echo json_encode(['ok'=>true,'id'=>$id]); exit; }
  if($a==='del'){ $pdo->prepare('DELETE FROM dash_graphs WHERE id=? AND user_id=?')->execute([$id,$uid]);
   $q=$pdo->prepare('SELECT card_order FROM users WHERE id=?'); $q->execute([$uid]); $o=array_filter(explode(',',(string)$q->fetchColumn()),fn($x)=>$x!=='g'.$id);

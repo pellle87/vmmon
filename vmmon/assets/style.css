@@ -283,3 +283,6 @@ form.card.inline{align-items:flex-end}
 @media(min-width:1500px){.thr3{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .srv.cmp .ign.mini{position:absolute;right:6px;top:6px;width:20px;height:20px;padding:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1;border-radius:50%;z-index:2}.srv.cmp .cn.hasign{padding-right:24px}
 .ps.ps-wide{grid-column:1/-1;padding-top:18px;border-top:1px solid var(--bd)}.ps-wide .pf{flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:14px 16px;max-width:100%}.ps-wide .pf>p{flex:1 0 100%;margin:0}.ps-wide .pf .f{width:auto}
+
+.srv.cmp .cu{margin-top:4px;display:flex;gap:8px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden}.srv.cmp .cu .okt{color:var(--ok)}.srv.cmp .cu .warnt{color:var(--warn)}.srv.cmp .cu .badt{color:var(--bad)}.srv.cmp .cu .ti1{color:#58a6ff}.srv.cmp .cu .ti2{color:#c39bff}
+.grid.cmpg.nob .srv.cmp{border-left-width:0}

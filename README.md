@@ -55,18 +55,6 @@ After an update, restart the background services once so they load the new code:
 
 The server needs outbound HTTPS to `api.github.com` and `github.com` for the in-app check.
 
-## Repository layout
-
-| Path | What |
-|---|---|
-| `vmmon/` | The application (this folder is what ends up in the release zip) |
-| `install-vmmon.sh` | Automatic installer |
-| `screenshots/` | Images used in this README |
-| `LICENSE` | License terms |
-| `make-release.sh` | Builds `Vmmon_<version>.zip` locally |
-| `.github/workflows/release.yml` | Builds and publishes a release when you push a `v<version>` tag |
-
-See [RELEASING.md](RELEASING.md) for how to publish a new version.
 
 ## License
 

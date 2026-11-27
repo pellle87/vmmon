@@ -288,3 +288,5 @@ form.card.inline{align-items:flex-end}
 .grid.cmpg.nob .srv.cmp{border-left-width:0}
 
 .srv.cmp.warn .ign.mini:not(.on){background:var(--warn);border-color:var(--warn);color:#1b1b1b}.srv.cmp.bad .ign.mini:not(.on){background:var(--bad);border-color:var(--bad);color:#fff}.srv.cmp .ign.mini.on{background:var(--mut);border-color:var(--mut);color:var(--card)}
+
+.srv.cmp .cu .cr{margin-left:auto;color:var(--tx)}

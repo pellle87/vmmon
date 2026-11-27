@@ -239,3 +239,5 @@ v3.19: BMC cards in compact view show the two hottest CPU temperatures (CPU1 and
 v3.20: Dashboard settings are split into General, Normal view and Compact view (thresholds moved there from General settings, after the alert sound). More space under the Auto update and Manual update headings. No migration.
 
 v3.21: Compact view settings: shorter labels, explanations as (i) buttons. With "Show usage" on, access points also show the number of clients and switches the number of ports with link. No migration.
+
+v3.22: Compact cards: client count (access points) and ports with link (switches) are shown as plain numbers at the right edge of the usage row. General dashboard settings: explanations as (i) buttons, the alert sound label removed. No migration.

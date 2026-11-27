@@ -54,14 +54,20 @@
    var order=st.o.concat(act.map(function(c){ return c.k; }));
    order.forEach(function(k){ var c=by[k]; hr.appendChild(c.th); c.cells.forEach(function(td,ri){ if(td&&rows[ri]) rows[ri].appendChild(td); }); });
    cols.forEach(function(c){ var h=!c.act&&!vis(c.k); c.th.classList.toggle('tc-h',h); c.cells.forEach(function(td){ if(td) td.classList.toggle('tc-h',h); }); });
-   if(!c0){ c0=1; cols.forEach(function(c){ if(!c.act&&vis(c.k)) c.nat=c.th.offsetWidth; }); }
+   if(!c0){ c0=1; if(NARROW()){ tb.classList.add('tc-meas'); } cols.forEach(function(c){ if(!c.act&&vis(c.k)) c.nat=c.th.offsetWidth; }); tb.classList.remove('tc-meas'); }
    widths(); drawPop(); }
-  var c0=0;
+  var c0=0; function NARROW(){ return window.innerWidth<720; }
   function widths(){
    var tw=tb.offsetWidth||(tb.parentNode&&tb.parentNode.clientWidth)||1000, actW=act.length?(tb.querySelector('td.inline')?130:125):0, avail; (function(){ var mx=0; [].forEach.call(tb.rows,function(r){ if(r.classList.contains('grph')) return; var td=r.cells[r.cells.length-1]; if(td&&td.tagName==='TD'&&td.colSpan<2&&!td.classList.contains('inline')){ var w=0; [].forEach.call(td.children,function(ch){ w+=ch.offsetWidth+6; }); mx=Math.max(mx,w); } }); if(mx+34>actW) actW=mx+34; })();
    avail=Math.max(120,tw-actW);
    var vc=cols.filter(function(c){ return !c.act&&vis(c.k); }), wt=vc.map(function(c){ return st.w[c.k]||c.nat||120; }), sum=wt.reduce(function(a,b){ return a+b; },0)||1;
-   tb.classList.add('tc-fix'); tb.style.width='100%';
+   tb.classList.add('tc-fix');
+   if(NARROW()){ // mobil: naturliga kolumnbredder och sidscroll i stället för hoptryckta kolumner
+    cols.forEach(function(c){ if(!c.act&&!vis(c.k)) c.th.style.width=''; });
+    var vc2=cols.filter(function(c){ return !c.act&&vis(c.k); }), tot2=actW; vc2.forEach(function(c){ var w=Math.max(70,Math.min(c.nat||110,240)); c.th.style.width=w+'px'; tot2+=w; });
+    act.forEach(function(c){ c.th.style.width=actW+'px'; var ix=c.th.cellIndex; [].forEach.call(tb.rows,function(r,ri){ if(ri&&r.cells[ix]) r.cells[ix].classList.add('tcact'); }); });
+    tb.style.width=Math.max(tot2,wrap.clientWidth||0)+'px'; return; }
+   tb.style.width='100%';
    cols.forEach(function(c){ if(!c.act&&!vis(c.k)) c.th.style.width=''; });
    vc.forEach(function(c,i){ c.th.style.width=(wt[i]/sum*avail/tw*100).toFixed(3)+'%'; });
    act.forEach(function(c){ c.th.style.width=(actW/tw*100).toFixed(3)+'%'; var ix=c.th.cellIndex; [].forEach.call(tb.rows,function(r,ri){ if(ri&&r.cells[ix]) r.cells[ix].classList.add('tcact'); }); }); }

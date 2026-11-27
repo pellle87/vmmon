@@ -271,3 +271,5 @@ v3.35: Map: port names for MAC-table links are read from the switch (ifName, als
 v3.36: Map: the zoom and pan position is remembered per user and restored the next time the map is opened (Fit view resets it). No migration.
 
 v3.37: Map: a device MAC is learned on every switch along the path, so only the port with the fewest MACs (the edge port) is used now instead of every switch; several NICs/bond members on the same switch give several links. No migration.
+
+v3.38: Mobile: tables (column-managed tables) use natural column widths and scroll sideways on narrow screens instead of squeezing every column to a few letters. Dashboard: when the saved own-order layout is for another number of columns than the screen has (for example on a phone), the cards are now ordered by their saved row and column, so the headline cards keep their groups. No migration.

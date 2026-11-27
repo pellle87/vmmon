@@ -309,3 +309,5 @@ form.card.inline{align-items:flex-end}
 .nmi rect{fill:rgba(128,128,128,.05);stroke:rgba(128,128,128,.4);stroke-dasharray:6 5;pointer-events:none}
 .nmit{font-size:13px;font-weight:600;fill:currentColor;opacity:.7;cursor:default}
 .nml.virt line:not(.hit){stroke-dasharray:2 5;stroke-linecap:round}
+table.tc-meas{table-layout:auto!important;width:max-content!important;max-width:none!important}table.tc-meas td,table.tc-meas th{white-space:nowrap!important;overflow:visible!important}
+@media(max-width:720px){.tcw{overflow-x:auto;-webkit-overflow-scrolling:touch}}

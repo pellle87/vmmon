@@ -136,7 +136,7 @@ function promoteCrit(cards,cols){const pos={},sp={};cards.forEach(el=>{const p=P
   const slots=o.map(el=>pos[el.dataset.id].slice()),B=o.filter(bad);B.forEach((b,i)=>{const t=slots[i],occ=o.find(el=>pos[el.dataset.id][0]===t[0]&&pos[el.dataset.id][1]===t[1]);if(!occ||occ===b)return;const bp=pos[b.dataset.id].slice();pos[b.dataset.id]=t.slice();pos[occ.dataset.id]=bp})});
  return pos}
 function layoutPass(){const g=gridEl(),cards=[...g.querySelectorAll(':scope>.srv')],cols=gcols();
- if(!EDIT){if(storedOK(cols)){const P=promoteCrit(cards,cols);cards.forEach(el=>{const p=P[el.dataset.id];if(p)setPos(el,p[0],p[1])})}return}
+ if(!EDIT){if(storedOK(cols)){const P=promoteCrit(cards,cols);cards.forEach(el=>{const p=P[el.dataset.id];if(p)setPos(el,p[0],p[1])})}else if(SORT==='layout'&&POSS&&POSS.p){const pp=POSS.p,big=1e6;cards.map((el,i)=>[el,i]).sort((a,b)=>{const pa=pp[a[0].dataset.id],pb=pp[b[0].dataset.id];return(pa?pa[1]:big)-(pb?pb[1]:big)||(pa?pa[0]:big)-(pb?pb[0]:big)||a[1]-b[1]}).forEach((x,i)=>{x[0].style.order=i+1})}return}
  if(POSE===null){if(storedOK(cols))cards.forEach(el=>{const p=POSS.p[el.dataset.id];if(p)setPos(el,p[0],p[1])});POSE={};cards.forEach(el=>{POSE[el.dataset.id]=measure(el)})}
  const occ=new Set();cards.forEach(el=>{const[sc,sr]=spOf(el,cols);el.dataset.sc=sc;el.dataset.sr=sr;let p=POSE[el.dataset.id];if(!p||!fits(p[0],p[1],sc,sr,occ,cols))p=firstFree(sc,sr,occ,cols);POSE[el.dataset.id]=p;markOcc(occ,p[0],p[1],sc,sr);setPos(el,p[0],p[1])});
  Object.keys(POSE).forEach(k=>{if(!cards.some(el=>el.dataset.id===k))delete POSE[k]});paintCells(cols)}

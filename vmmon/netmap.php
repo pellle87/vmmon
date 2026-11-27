@@ -13,9 +13,9 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  http_response_code(400); exit('{}');
 }
 // ---- bygg graf ----
-$rows=$pdo->query("SELECT id,name,host,os_info,info,nw_type,nw_role,hv_type,nw_data,nw_status,hv_status,enabled,dash_hidden,(maint_until IS NOT NULL AND maint_until>NOW()) maint FROM servers WHERE is_services=0 ORDER BY name")->fetchAll();
+$rows=$pdo->query("SELECT id,name,host,os_info,info,hv_data,nw_type,nw_role,hv_type,nw_data,nw_status,hv_status,enabled,dash_hidden,(maint_until IS NOT NULL AND maint_until>NOW()) maint FROM servers WHERE is_services=0 ORDER BY name")->fetchAll();
 $png=[]; try{ foreach($pdo->query("SELECT server_id,MAX(last_status='down') d FROM server_checks WHERE kind='ping' AND enabled=1 AND mon_up=1 GROUP BY server_id") as $r) $png[(int)$r['server_id']]=(int)$r['d']; }catch(Throwable $e){}
-$byName=[]; $byIp=[]; $byMac=[]; $nodes=[]; $nbrs=[];
+$byName=[]; $byIp=[]; $byMac=[]; $nodes=[]; $nbrs=[]; $fdbs=[]; $vmhost=[];
 foreach($rows as $r){ $id=(int)$r['id']; $nd=json_decode((string)$r['nw_data'],true)?:[]; $inf=json_decode((string)$r['info'],true)?:[];
  $role=$r['nw_type']?(string)($r['nw_role']?:'switch'):($r['hv_type']?'host':'server');
  $st='ok'; if(!(int)$r['enabled']) $st='dis'; elseif($r['nw_type']&&$r['nw_status']==='down') $st='bad'; elseif($r['hv_type']&&$r['hv_status']==='down') $st='bad'; elseif(!empty($png[$id])) $st='bad';
@@ -23,7 +23,9 @@ foreach($rows as $r){ $id=(int)$r['id']; $nd=json_decode((string)$r['nw_data'],t
  $nodes[$id]=['id'=>(string)$id,'n'=>$r['name'],'k'=>$role,'st'=>$st,'u'=>$url,'ip'=>filter_var($r['host'],FILTER_VALIDATE_IP)?$r['host']:''];
  $byName[nm_norm($r['name'])]=$id; if(!filter_var($r['host'],FILTER_VALIDATE_IP)) $byName[nm_norm($r['host'])]=$id; else $byIp[$r['host']]=$id;
  foreach([$nd['hostname']??'',$inf['hostname']??''] as $hn) if($hn!=='') $byName[nm_norm($hn)]=$id;
- foreach((array)($nd['nbr']??[]) as $x) $nbrs[$id][]=$x; }
+ foreach((array)($nd['nbr']??[]) as $x) $nbrs[$id][]=$x;
+ foreach((array)($nd['fdb']??[]) as $x) $fdbs[$id][]=$x;
+ if($r['hv_type']) foreach((array)(json_decode((string)$r['hv_data'],true)['vms']??[]) as $vv){ $vk=nm_norm($vv['n']??''); if($vk!==''&&!isset($vmhost[$vk])) $vmhost[$vk]=$id; } }
 $mc=[]; try{ foreach($pdo->query("SELECT server_id,LOWER(mac) mac FROM net_if WHERE mac<>'' AND mac<>'00:00:00:00:00:00'") as $r){ $mc[$r['mac']][(int)$r['server_id']]=1; } }catch(Throwable $e){} foreach($mc as $m=>$s) if(count($s)===1) $byMac[$m]=array_key_first($s);
 $links=[]; $unk=[];
 foreach($nbrs as $a=>$list) foreach($list as $x){ $b=null; if(!empty($x['rm'])) $b=$byMac[strtolower($x['rm'])]??null; if($b===null&&!empty($x['ri'])) $b=$byIp[$x['ri']]??null; if($b===null&&($x['rn']??'')!=='') $b=$byName[nm_norm($x['rn'])]??null;
@@ -31,6 +33,15 @@ foreach($nbrs as $a=>$list) foreach($list as $x){ $b=null; if(!empty($x['rm'])) 
  $ak=(string)$a; $ap=(string)$x['lp']; $bp=(string)($x['rp']??''); if(strcmp($ak,$bk)>0){ [$ak,$bk]=[$bk,$ak]; [$ap,$bp]=[$bp,$ap]; }
  $dup=false; foreach($links as &$L){ if($L['a']===$ak&&$L['b']===$bk&&((strcasecmp($L['ap'],$ap)===0&&$ap!=='')||(strcasecmp($L['bp'],$bp)===0&&$bp!==''))){ if($L['ap']==='') $L['ap']=$ap; if($L['bp']==='') $L['bp']=$bp; $dup=true; break; } } unset($L);
  if(!$dup) $links[]=['a'=>$ak,'b'=>$bk,'ap'=>$ap,'bp'=>$bp,'m'=>0,'p'=>strtoupper((string)$x['pr'])]; }
+
+// Fysiska maskiner utan LLDP: switchens MAC-tabell visar vilken port enhetens MAC lärts på (portar med LLDP-granne eller över 40 MAC hoppas över = uppkopplingar mellan switchar)
+$pn=[]; try{ foreach($pdo->query("SELECT server_id,if_index,name FROM net_if") as $r) $pn[(int)$r['server_id']][(int)$r['if_index']]=(string)$r['name']; }catch(Throwable $e){}
+foreach($fdbs as $sw=>$list){ $lldpPorts=[]; foreach($nbrs[$sw]??[] as $x) if(!empty($x['li'])) $lldpPorts[(int)$x['li']]=1; $seen=[];
+ foreach($list as $x){ $t=$byMac[$x['m']]??null; if($t===null||$t===$sw||isset($lldpPorts[(int)$x['i']])||(int)$x['c']>40) continue; if(in_array($nodes[$t]['k'],['switch','router','ap'],true)) continue; $key=$sw.'-'.$x['i'].'-'.$t; if(isset($seen[$key])) continue; $seen[$key]=1;
+  $dupe=false; foreach($links as $L) if(!$L['m']&&(($L['a']===(string)$sw&&$L['b']===(string)$t)||($L['a']===(string)$t&&$L['b']===(string)$sw))){ $dupe=true; break; } if($dupe) continue;
+  $links[]=['a'=>(string)$sw,'b'=>(string)$t,'ap'=>$pn[$sw][(int)$x['i']]??('if '.$x['i']),'bp'=>'','m'=>0,'p'=>'MAC']; } }
+// Virtuella maskiner: kopplas till sin hypervisor (via namn)
+foreach($nodes as $id=>$nd){ if(!is_int($id)||$nd['k']!=='server') continue; $hid=$vmhost[nm_norm($nd['n'])]??null; if($hid&&$hid!==$id&&isset($nodes[$hid])) $links[]=['a'=>(string)$hid,'b'=>(string)$id,'ap'=>'','bp'=>'','m'=>0,'p'=>'VM']; }
 $man=nm_jget('netmap_links'); foreach($man as $L){ if(!isset($nodes[(string)$L['a']])||!isset($nodes[(string)$L['b']])) continue; $links[]=['a'=>(string)$L['a'],'b'=>(string)$L['b'],'ap'=>(string)($L['ap']??''),'bp'=>(string)($L['bp']??''),'m'=>1,'p'=>'','id'=>$L['id'],'l'=>(string)($L['l']??'')]; }
 $data=['nodes'=>array_values($nodes),'links'=>$links,'pos'=>(object)nm_jget('netmap_pos')];
 top(t('Nätverkskarta','Network map'));

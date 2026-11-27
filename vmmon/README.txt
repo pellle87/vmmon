@@ -265,3 +265,5 @@ v3.32: Map: servers, storage and firewalls without LLDP are now placed by the sw
 v3.33: Map: removed the help text under the map. No migration.
 
 v3.34: Map: devices without MACs in their interface list (Proxmox/VMware hosts read over API, agent-only servers) are now placed on the switch port too: the ARP table of switches, routers and firewalls (IP-MIB, slow round) gives IP -> MAC, which is looked up in the switch MAC tables. The MAC table now stores all edge-port MACs (ports with at most 40 MACs). VMs are only linked to their hypervisor. No migration.
+
+v3.35: Map: port names for MAC-table links are read from the switch (ifName, also for trunks like Trk1), and the device-side port name is taken from the device interface that owns the MAC. A VM seen on a switch port now links its hypervisor to that port instead of the VM. Manual links can be of type VM (A runs B) for VMs the hypervisor list does not reveal (e.g. a VM on a NAS). No migration.

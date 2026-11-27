@@ -17,7 +17,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){ $a=$_POST['a']??''; $gid=(int)($_POST['
    if($g&&$d){ $ex=array_flip($pdo->query('SELECT id FROM device_groups')->fetchAll(PDO::FETCH_COLUMN)); $ins=$pdo->prepare('INSERT IGNORE INTO device_group_members(group_id,server_id) VALUES(?,?)'); $del=$pdo->prepare('DELETE FROM device_group_members WHERE group_id=? AND server_id=?');
     foreach($g as $x){ if(!isset($ex[$x])) continue; foreach($d as $y) ($mode==='add'?$ins:$del)->execute([$x,$y]); } $_SESSION['flash']=$mode==='add'?t('Enheterna lades till i de valda grupperna.','Devices added to the selected groups.'):t('Enheterna togs bort från de valda grupperna.','Devices removed from the selected groups.'); }
    else $_SESSION['flash']=t('Välj minst en grupp och en enhet.','Select at least one group and one device.'); }
- }catch(Throwable $e){ $_SESSION['flash']=t('Kunde inte spara (har sql/3.03.sql körts?).','Could not save (has sql/3.03.sql been run?).'); }
+ }catch(Throwable $e){ $_SESSION['flash']=t('Kunde inte spara (har sql/3.04.sql körts?).','Could not save (has sql/3.04.sql been run?).'); }
  header('Location: groups.php'); exit; }
 // ---- data
 $G=dg_all(); $MB=[]; try{ foreach($pdo->query('SELECT * FROM device_group_members') as $r) $MB[(int)$r['group_id']][(int)$r['server_id']]=1; }catch(Throwable $e){}

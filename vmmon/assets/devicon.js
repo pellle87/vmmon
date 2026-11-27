@@ -3,7 +3,7 @@
 function setm(el,u){el.style.webkitMaskImage=el.style.maskImage=u?'url('+u+')':'none'}
 var pop=null,tm;function close(){if(pop){pop.remove();pop=null}}
 function post(box,spec){var b=new URLSearchParams();b.set('t',box.getAttribute('data-tok'));b.set('k',box.getAttribute('data-t'));b.set('id',box.getAttribute('data-id'));b.set('icon',spec);
- fetch('api/seticon.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b.toString()}).then(function(r){return r.json()}).then(function(d){if(!d.ok)throw 0;location.reload()}).catch(function(){alert(T('Kunde inte spara ikonen (har sql/3.03.sql körts?)','Could not save the icon (has sql/3.03.sql been run?)'))})}
+ fetch('api/seticon.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b.toString()}).then(function(r){return r.json()}).then(function(d){if(!d.ok)throw 0;location.reload()}).catch(function(){alert(T('Kunde inte spara ikonen (har sql/3.04.sql körts?)','Could not save the icon (has sql/3.04.sql been run?)'))})}
 document.addEventListener('click',function(e){var pen=e.target.closest('.dic .pen');if(!pen){if(pop&&!e.target.closest('.icpop'))close();return}
  e.preventDefault();e.stopPropagation();if(pop){close();return}var box=pen.closest('.dic'),set='all';
  pop=document.createElement('div');pop.className='icpop';

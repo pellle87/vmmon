@@ -253,3 +253,5 @@ v3.26: Services card in compact view: the TCP, URL, PING and CERT counts are col
 v3.27: The Ignore button on dashboard cards is replaced by Pause: it pauses alerts for the device like the Pause alerts box on the device page (choose 30 min to indefinitely), and shows Paused/Resume when paused. Cards that are paused and not healthy are grey and counted as Paused. The old ignored flag is no longer used. No migration.
 
 v3.28: The small status button on compact cards uses SVG icons (exclamation mark and pause) so they are exactly centred. No migration.
+
+v3.29: New Map page in the main menu. LLDP and CDP neighbours are collected from network devices over SNMP (in the slow round, about every 15 min) and drawn as a layered map with port names, status colours, drag to arrange (saved), pan/zoom, search and highlight. Links are matched to devices by MAC, IP or name; unknown neighbours and unlinked devices can be shown. Admins can add and delete manual links. No migration.

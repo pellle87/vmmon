@@ -3,8 +3,9 @@ $pdo=db(); $adm=is_admin();
 function nm_norm($n){ $n=strtolower(trim((string)$n,"\" \r\n")); if($n===''||filter_var($n,FILTER_VALIDATE_IP)) return $n; return explode('.',$n)[0]; }
 function nm_jget($k){ $j=json_decode((string)setting($k,''),true); return is_array($j)?$j:[]; }
 if($_SERVER['REQUEST_METHOD']==='POST'){
- if(!$adm){ http_response_code(403); exit('{}'); }
  $a=$_POST['a']??'';
+ if($a==='opt'){ $o=json_decode((string)($_POST['o']??''),true); $c=[]; foreach(['nmports','nmgrid','nmunk','nmiso'] as $k) if(is_array($o)&&isset($o[$k])) $c[$k]=$o[$k]?1:0; try{ $pdo->prepare('INSERT INTO user_prefs(user_id,k,v) VALUES(?,?,?) ON DUPLICATE KEY UPDATE v=VALUES(v)')->execute([(int)$_SESSION['u']['id'],'nmopt',json_encode($c)]); echo '{"ok":true}'; }catch(Throwable $e){ http_response_code(500); echo '{"ok":false}'; } exit; }
+ if(!$adm){ http_response_code(403); exit('{}'); }
  if($a==='pos'){ $in=json_decode((string)($_POST['pos']??''),true); $pos=nm_jget('netmap_pos'); if(is_array($in)) foreach($in as $k=>$v){ if(is_array($v)&&count($v)===2&&preg_match('/^[0-9a-z:\-_.]{1,80}$/i',(string)$k)) $pos[(string)$k]=[round((float)$v[0]),round((float)$v[1])]; } if(count($pos)>1500) $pos=array_slice($pos,-1500,null,true); set_setting('netmap_pos',json_encode($pos)); header('Content-Type: application/json'); exit('{"ok":1}'); }
  if($a==='resetpos'){ set_setting('netmap_pos',''); header('Location: netmap.php'); exit; }
  if($a==='addlink'){ $A=(int)($_POST['la']??0); $B=(int)($_POST['lb']??0); if($A>0&&$B>0&&$A!==$B){ $L=nm_jget('netmap_links'); $L[]=['id'=>bin2hex(random_bytes(4)),'a'=>$A,'ap'=>mb_substr(trim((string)($_POST['lap']??'')),0,60),'b'=>$B,'bp'=>mb_substr(trim((string)($_POST['lbp']??'')),0,60),'l'=>mb_substr(trim((string)($_POST['ll']??'')),0,80)]; set_setting('netmap_links',json_encode(array_slice($L,-500))); $_SESSION['flash']=t('Kopplingen lades till.','Link added.'); } header('Location: netmap.php'); exit; }
@@ -63,6 +64,6 @@ $tot=0; $ndev=0; foreach($links as $L) if(!$L['m']) $tot++; foreach($nbrs as $l)
 <td><form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="a" value="dellink"><input type="hidden" name="id" value="<?= h($L['id']) ?>"><button class="btn sm danger"><?= t('Ta bort','Remove') ?></button></form></td></tr>
 <?php endforeach; ?></table></div><?php endif; ?>
 <?php endif; ?>
-<script>window.NM=<?= json_encode($data,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP) ?>;window.NMADM=<?= $adm?1:0 ?>;window.NMT=<?= json_encode(csrf()) ?>;window.NMX={is:<?= json_encode(t('Nät','Network')) ?>,iu:<?= json_encode(t('Utan koppling','Unlinked')) ?>,ln:<?= json_encode(t('Port','Port')) ?>,m:<?= json_encode(t('Egen koppling','Manual link')) ?>};</script>
+<script>window.NM=<?= json_encode($data,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP) ?>;window.NMADM=<?= $adm?1:0 ?>;window.NMT=<?= json_encode(csrf()) ?>;window.NMO=<?= json_encode((object)(json_decode(user_pref('nmopt'),true)?:[])) ?>;window.NMX={is:<?= json_encode(t('Nät','Network')) ?>,iu:<?= json_encode(t('Utan koppling','Unlinked')) ?>,ln:<?= json_encode(t('Port','Port')) ?>,m:<?= json_encode(t('Egen koppling','Manual link')) ?>};</script>
 <script src="assets/netmap.js"></script>
 <?php bottom();

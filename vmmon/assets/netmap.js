@@ -82,8 +82,10 @@ var pan=null;svg.addEventListener('pointerdown',function(e){if(e.target!==svg&&e
 svg.addEventListener('pointermove',function(e){if(!pan)return;var k=vb.w/svg.getBoundingClientRect().width;vb.x=pan.vx-(e.clientX-pan.x)*k;vb.y=pan.vy-(e.clientY-pan.y)*k;view()});
 svg.addEventListener('pointerup',function(){pan=null;svg.classList.remove('pan')});
 ['nmports','nmunk','nmiso','nmq'].forEach(function(id){document.getElementById(id).addEventListener(id==='nmq'?'input':'change',pos)});
-var gc=document.getElementById('nmgrid');try{if(gc&&localStorage.getItem('vmmon_nmgrid')==='0')gc.checked=false}catch(e){}
-if(gc)gc.addEventListener('change',function(){try{localStorage.setItem('vmmon_nmgrid',gc.checked?'1':'0')}catch(e){}grid()});
+var gc=document.getElementById('nmgrid'),O=window.NMO||{},OI=['nmports','nmgrid','nmunk','nmiso'];
+OI.forEach(function(id){var c=document.getElementById(id);if(c&&O[id]!==undefined)c.checked=!!O[id];
+ if(c)c.addEventListener('change',function(){var o={};OI.forEach(function(k){var e=document.getElementById(k);if(e)o[k]=e.checked?1:0});
+  var b=new URLSearchParams();b.set('t',window.NMT);b.set('a','opt');b.set('o',JSON.stringify(o));fetch('netmap.php',{method:'POST',body:b,credentials:'same-origin'});if(id==='nmgrid')grid()})});
 window.addEventListener('resize',grid);
 document.getElementById('nmfit').addEventListener('click',fit);
 build();fit();

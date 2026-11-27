@@ -263,3 +263,5 @@ v3.31: Map: the checkbox choices (port names, grid, unknown neighbours, unlinked
 v3.32: Map: servers, storage and firewalls without LLDP are now placed by the switch MAC address table (BRIDGE-MIB / Q-BRIDGE-MIB, read in the slow round): a device whose MAC (from its interfaces) is learned on a switch access port gets a link to that port (ports with an LLDP neighbour or more than 40 MACs are ignored). VMs are linked to their hypervisor by name (dotted line). Unknown neighbours no longer show garbage names: binary chassis IDs are decoded as MAC/IP and unreadable text is dropped. No migration.
 
 v3.33: Map: removed the help text under the map. No migration.
+
+v3.34: Map: devices without MACs in their interface list (Proxmox/VMware hosts read over API, agent-only servers) are now placed on the switch port too: the ARP table of switches, routers and firewalls (IP-MIB, slow round) gives IP -> MAC, which is looked up in the switch MAC tables. The MAC table now stores all edge-port MACs (ports with at most 40 MACs). VMs are only linked to their hypervisor. No migration.

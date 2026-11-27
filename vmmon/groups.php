@@ -17,7 +17,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){ $a=$_POST['a']??''; $gid=(int)($_POST['
    if($g&&$d){ $ex=array_flip($pdo->query('SELECT id FROM device_groups')->fetchAll(PDO::FETCH_COLUMN)); $ins=$pdo->prepare('INSERT IGNORE INTO device_group_members(group_id,server_id) VALUES(?,?)'); $del=$pdo->prepare('DELETE FROM device_group_members WHERE group_id=? AND server_id=?');
     foreach($g as $x){ if(!isset($ex[$x])) continue; foreach($d as $y) ($mode==='add'?$ins:$del)->execute([$x,$y]); } $_SESSION['flash']=$mode==='add'?t('Enheterna lades till i de valda grupperna.','Devices added to the selected groups.'):t('Enheterna togs bort från de valda grupperna.','Devices removed from the selected groups.'); }
    else $_SESSION['flash']=t('Välj minst en grupp och en enhet.','Select at least one group and one device.'); }
- }catch(Throwable $e){ $_SESSION['flash']=t('Kunde inte spara (har sql/3.15.sql körts?).','Could not save (has sql/3.15.sql been run?).'); }
+ }catch(Throwable $e){ $_SESSION['flash']=t('Kunde inte spara (har sql/3.16.sql körts?).','Could not save (has sql/3.16.sql been run?).'); }
  header('Location: groups.php'); exit; }
 // ---- data
 $G=dg_all(); $MB=[]; try{ foreach($pdo->query('SELECT * FROM device_group_members') as $r) $MB[(int)$r['group_id']][(int)$r['server_id']]=1; }catch(Throwable $e){}
@@ -27,8 +27,10 @@ foreach($pdo->query('SELECT * FROM servers ORDER BY name')->fetchAll() as $s){ $
 foreach($cat as &$l) usort($l,fn($a,$b)=>strnatcasecmp($a['_t'],$b['_t'])); unset($l);
 function dev_list($cat,$name,$sel=[]){ $o='<div class="dgdev">'; foreach($cat as $gl=>$l){ if(!$l) continue; $o.='<div class="dgh"><b>'.h($gl).'</b> <a href="#" class="dgall" data-on="1">'.t('alla','all').'</a> · <a href="#" class="dgall" data-on="0">'.t('ingen','none').'</a></div><div class="dgl">';
   foreach($l as $s) $o.='<label class="pl"><input type="checkbox" name="'.$name.'[]" value="'.(int)$s['id'].'"'.(isset($sel[(int)$s['id']])?' checked':'').'> '.h($s['_t']).(empty($s['is_services'])&&$s['host']&&$s['host']!==$s['_t']?' <small>'.h($s['host']).'</small>':'').'</label>'; $o.='</div>'; } return $o.'</div>'; }
-top(t('Enhetsgrupper','Device groups')); if($adm) settings_tabs('groups'); flash(); ?>
-<h2><?= t('Enhetsgrupper','Device groups') ?></h2>
+top(t('Enhetsgrupper','Device groups')); flash(); ?>
+<?php if($adm): ?><h2><?= t('Inställningar','Settings') ?></h2>
+<?php settings_tabs('groups'); ?><?php else: ?><h2><?= t('Enhetsgrupper','Device groups') ?></h2><?php endif; ?>
+<?php if($adm): ?><h3><?= t('Enhetsgrupper','Device groups') ?></h3><?php endif; ?>
 <p class="mut"><?= t('Gruppera servrar, hosts, nätverks- och lagringsenheter och tjänster. Grupperna kan visas som kolumn på listsidorna (Kolumner) och användas som mål för larmregler.','Group servers, hosts, network and storage devices and services. Groups can be shown as a column on the list pages (Columns) and used as the target of alert rules.') ?></p>
 <?php if($adm): ?><form method="post" class="card inline"><?= csrf_field() ?><input type="hidden" name="a" value="create"><input name="name" maxlength="80" placeholder="<?= h(t('Ny grupp, t.ex. Kontoret','New group, e.g. Office')) ?>" style="min-width:240px"><button class="btn"><?= t('Skapa grupp','Create group') ?></button></form><?php endif; ?>
 <?php if(!$G): ?><p class="mut"><?= t('Inga grupper ännu.','No groups yet.') ?></p><?php endif; ?>

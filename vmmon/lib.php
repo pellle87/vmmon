@@ -507,7 +507,7 @@ function pw_login_off(){ return setting('pw_login_off','0')==='1'&&!(defined('VM
 function oidc_on(){ return setting('oidc_on','0')==='1'&&trim(setting('oidc_issuer',''))!==''&&trim(setting('oidc_client_id',''))!==''&&secret('oidc_secret')!==''; }
 function pw_off_check($actor){ $pdo=db(); try{ $q=$pdo->prepare('SELECT COUNT(*) FROM user_passkeys WHERE user_id=?'); $q->execute([(int)$actor]); if(!(int)$q->fetchColumn()) return t('Du måste själv ha en passkey för att kunna stänga av lösenordsinloggningen (lägg till en under Min profil).','You must have a passkey yourself to disable password login (add one under My profile).');
   $n=(int)$pdo->query("SELECT COUNT(*) FROM users u WHERE u.role='admin' AND IFNULL(u.disabled,0)=0 AND u.last_seen>=NOW()-INTERVAL 1 DAY AND EXISTS(SELECT 1 FROM user_passkeys p WHERE p.user_id=u.id)")->fetchColumn();
-  if(!$n) return t('Minst en administratör med passkey måste ha varit inloggad/aktiv under det senaste dygnet.','At least one administrator with a passkey must have been signed in/active during the last 24 hours.'); }catch(Throwable $e){ return t('Kunde inte kontrollera passkeys (har sql/3.15.sql körts?).','Could not check passkeys (has sql/3.15.sql been run?).'); } return ''; }
+  if(!$n) return t('Minst en administratör med passkey måste ha varit inloggad/aktiv under det senaste dygnet.','At least one administrator with a passkey must have been signed in/active during the last 24 hours.'); }catch(Throwable $e){ return t('Kunde inte kontrollera passkeys (har sql/3.16.sql körts?).','Could not check passkeys (has sql/3.16.sql been run?).'); } return ''; }
 function oidc_http($url,$post=null,$hdr=[]){ $c=curl_init($url); $o=[CURLOPT_RETURNTRANSFER=>1,CURLOPT_TIMEOUT=>10,CURLOPT_CONNECTTIMEOUT=>6,CURLOPT_HTTPHEADER=>array_merge(['Accept: application/json'],$hdr)]; if($post!==null){ $o[CURLOPT_POST]=1; $o[CURLOPT_POSTFIELDS]=http_build_query($post); } curl_setopt_array($c,$o); $r=curl_exec($c); $code=(int)curl_getinfo($c,CURLINFO_HTTP_CODE); $e=curl_error($c); curl_close($c); return [$code,(string)$r,$e]; }
 function oidc_url_ok($u){ $p=parse_url($u); if(!$p||empty($p['host'])||!in_array($p['scheme']??'',['https','http'],true)) return false; if($p['scheme']==='https') return true; $h=$p['host']; return $h==='localhost'||strpos($h,'.')===false||substr($h,-6)==='.local'||(filter_var($h,FILTER_VALIDATE_IP)&&!filter_var($h,FILTER_VALIDATE_IP,FILTER_FLAG_NO_PRIV_RANGE|FILTER_FLAG_NO_RES_RANGE)); }
 // Hämtar (och cachar i 1 h) providerns discovery-dokument. Returnerar [array|null, felmeddelande]
@@ -874,7 +874,7 @@ function poll_post(){ $pdo=db(); if(!poll_claim('vmmon_post')) return; try{ $GLO
 // Allt i en process (webbfallback när ingen worker kör, och worker.php --once).
 function poll_all(){ $r=poll_due(); poll_post(); return $r; }
 // ---- delade UI-hjälpare
-// Per-användar-inställningar (t.ex. kolumner i tabeller). Tabellen user_prefs skapas av sql/3.15.sql.
+// Per-användar-inställningar (t.ex. kolumner i tabeller). Tabellen user_prefs skapas av sql/3.16.sql.
 function lay_n($x=null){ $n=(int)($x??user_pref('lay')); return $n>=1&&$n<=3?$n:1; }
 function user_pref($k){ try{ $q=db()->prepare('SELECT v FROM user_prefs WHERE user_id=? AND k=?'); $q->execute([(int)($_SESSION['u']['id']??0),$k]); $v=$q->fetchColumn(); return $v===false?'':(string)$v; }catch(Throwable $e){ return ''; } }
 function tc_attr($key){ return ' data-tc="'.h($key).'" data-t="'.h(csrf()).'" data-cfg="'.h(user_pref('cols:'.$key)).'"'; }

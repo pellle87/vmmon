@@ -247,3 +247,5 @@ v3.23: Compact cards: the client/port count is hidden automatically when the row
 v3.24: Dashboard settings: the Docker option is on its own row. The (!) ignore button on compact cards is smaller, centred and has a border. No migration.
 
 v3.25: Compact cards: less space between the OS icon and the device name. No migration.
+
+v3.26: Services card in compact view: the TCP, URL, PING and CERT counts are coloured green, yellow or red by the worst status among those checks (down, slow response, certificate close to expiry). No migration.

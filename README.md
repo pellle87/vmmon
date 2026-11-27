@@ -1,5 +1,7 @@
 # VM Monitor (vmmon)
 
+**Official website and documentation: <https://vmmonitor.kallstrom.me>**
+
 A self-hosted monitoring dashboard for small and mid-sized infrastructure, written in PHP 8 + MariaDB/MySQL.
 Servers (Linux/Windows), virtualisation hosts, network devices, storage, BMC/IPMI, TCP/URL/certificate checks,
 SNMP traps and syslog – with alert rules you can read, e-mail / Telegram / webhook / SMS notifications and a compact dashboard.
@@ -28,7 +30,7 @@ Requirements: PHP 8+ with `curl`, `openssl`, `pdo_mysql`, `snmp`, `zip`, `zlib`;
 3. Copy `config.local.php.example` to `config.local.php` and enter the database details.
 4. Install the services `vmmon-worker.service` (and `vmmon-zabbix.service`, `vmmon-recv.service` if you use them) from the `vmmon` folder.
 
-Full documentation (install, dashboard, checks, alert rules, SNMP/MIBs, traps and syslog): [`docs/vmmon-docs.html`](docs/vmmon-docs.html).
+Full documentation (install, dashboard, checks, alert rules, SNMP/MIBs, traps and syslog): <https://vmmonitor.kallstrom.me>.
 
 ## Updating
 
@@ -48,11 +50,16 @@ The server needs outbound HTTPS to `api.github.com` and `github.com` for the in-
 |---|---|
 | `vmmon/` | The application (this folder is what ends up in the release zip) |
 | `install-vmmon.sh` | Automatic installer |
-| `docs/` | HTML documentation |
+| `LICENSE` | License terms |
 | `make-release.sh` | Builds `Vmmon_<version>.zip` locally |
 | `.github/workflows/release.yml` | Builds and publishes a release when you push a `v<version>` tag |
 
 See [RELEASING.md](RELEASING.md) for how to publish a new version.
+
+## License
+
+VM Monitor is free to use, for private and commercial use. Copying, redistributing, publishing modified versions and selling it
+are **not** permitted. Source-available, not an OSI open-source licence. See [LICENSE](LICENSE) for the exact terms.
 
 ## Issues and contributions
 

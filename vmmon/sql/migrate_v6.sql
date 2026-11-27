@@ -1,0 +1,2 @@
+USE vmmon;
+ALTER TABLE server_checks ADD COLUMN hidden TINYINT NOT NULL DEFAULT 0;

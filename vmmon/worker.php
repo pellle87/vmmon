@@ -22,7 +22,7 @@ wlog('starting (PHP '.PHP_VERSION.', pid '.getmypid().')');
 foreach(['pdo_mysql','curl','openssl','snmp'] as $x) if(!extension_loaded($x)) wlog("WARNING: PHP extension $x is missing in the command-line PHP (php -m)");
 if(!fping_bin()) wlog('info: fping is not installed – pings run one at a time (apt install fping runs them in bulk)');
 $kids=[]; $want=1; $lastN=0; $lastPost=0; $lastSpawn=0; $multi=false;
-do{ try{ setting('',null,true); app_tz_sync(); set_setting('worker_beat',time());
+do{ try{ setting('',null,true); app_tz_sync(); set_setting('worker_beat',time()); try{ upd_auto_check(); }catch(Throwable $ux){ wlog('WARNING: update check: '.$ux->getMessage()); }
    if($once){ guest_mem_map(true); $r=poll_all(); $tot['cycles']++; $tot['checks']+=$r['checks']; $tot['hosts']+=$r['hosts']; wlog("ran: {$r['checks']} checks, {$r['hosts']} hosts in {$r['ms']} ms"); break; }
    if(time()-$lastN>=30||!$lastN){ $lastN=time(); $want=worker_count(); if($want!==($multi?count($kids):1)) wlog('pollers: '.$want.($want>1?' (parallel)':' (single process)')); $multi=$want>1; set_setting('worker_info',json_encode(['n'=>$want,'ts'=>time()])); }
    if($multi){

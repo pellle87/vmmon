@@ -1,0 +1,1 @@
+-- v42 (ersatt av v43): behövs inte längre. Docker-övervakning är nu en kontrolltyp (se sql/migrate_v43.sql).

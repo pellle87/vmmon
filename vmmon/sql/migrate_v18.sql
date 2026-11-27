@@ -1,0 +1,2 @@
+USE vmmon;
+CREATE TABLE app_log(id BIGINT AUTO_INCREMENT PRIMARY KEY, ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP, level ENUM('debug','info','warning','error') NOT NULL, src VARCHAR(20) NOT NULL, usr VARCHAR(50) NULL, msg VARCHAR(600) NOT NULL, INDEX(ts), INDEX(level,id), INDEX(src,id));

@@ -1,0 +1,2 @@
+USE vmmon;
+ALTER TABLE servers ADD COLUMN ignored TINYINT NOT NULL DEFAULT 0;

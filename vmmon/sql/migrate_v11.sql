@@ -1,0 +1,2 @@
+USE vmmon;
+ALTER TABLE alert_rules ADD COLUMN notify_wh TINYINT NOT NULL DEFAULT 0;

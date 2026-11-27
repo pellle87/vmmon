@@ -1,0 +1,3 @@
+-- v45: ikoner för tjänstekontroller (egna SVG + vald ikon per kontroll)
+ALTER TABLE server_checks ADD COLUMN icon VARCHAR(80) NOT NULL DEFAULT '';
+CREATE TABLE IF NOT EXISTS icons(id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(80) NOT NULL, svg MEDIUMTEXT NOT NULL, created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);

@@ -1,0 +1,3 @@
+-- v29: kontolåsning efter misslyckade inloggningar
+ALTER TABLE users ADD COLUMN locked_until DATETIME NULL;
+CREATE TABLE IF NOT EXISTS login_fail(id BIGINT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, ip VARCHAR(45), ts DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX(user_id,ts));

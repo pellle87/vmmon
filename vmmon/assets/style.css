@@ -286,3 +286,5 @@ form.card.inline{align-items:flex-end}
 
 .srv.cmp .cu{margin-top:4px;display:flex;gap:8px;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden}.srv.cmp .cu .okt{color:var(--ok)}.srv.cmp .cu .warnt{color:var(--warn)}.srv.cmp .cu .badt{color:var(--bad)}.srv.cmp .cu .ti1{color:#58a6ff}.srv.cmp .cu .ti2{color:#c39bff}
 .grid.cmpg.nob .srv.cmp{border-left-width:0}
+
+.srv.cmp.warn .ign.mini:not(.on){background:var(--warn);border-color:var(--warn);color:#1b1b1b}.srv.cmp.bad .ign.mini:not(.on){background:var(--bad);border-color:var(--bad);color:#fff}.srv.cmp .ign.mini.on{background:var(--mut);border-color:var(--mut);color:var(--card)}

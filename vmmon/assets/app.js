@@ -49,7 +49,7 @@ const ICON_MISSING={};
 const ignMini=s=>{if(!ADMIN||s.real==='dis'||(s.real==='ok'&&!s.ignored))return'';const tt=s.ignored?T('Ignorerar varning/kritisk – klicka för att sluta ignorera','Ignoring warning/critical – click to stop ignoring'):T('Ignorera varning/kritisk för detta kort','Ignore warning/critical for this card');return `<button type="button" class="ign mini${s.ignored?' on':''}" data-id="${s.sid||s.id}" title="${tt}">!</button>`};
 const rate=b=>{b=+b||0;return b>=1e9?(b/1e9).toFixed(1)+' Gb/s':b>=1e6?(b/1e6).toFixed(b>=1e8?0:1)+' Mb/s':b>=1e3?Math.round(b/1e3)+' kb/s':Math.round(b)+' b/s'};
 const usg=s=>{if(!window.HOV||!HOV.usg||s.svc||s.st==='dis'||s.st==='off')return'';const sp=(c,t)=>`<span class="${c}">${t}</span>`,lv=['okt','warnt','badt'],nn=v=>v!==null&&v!==undefined&&v!=='',o=[];
- if(s.nw&&s.nw.role==='bmc'){if(nn(s.nw.ct))o.push(sp('',`CPU ${Math.round(s.nw.ct)} °C`));if(nn(s.nw.watts))o.push(sp('',`${Math.round(s.nw.watts)} W`))}
+ if(s.nw&&s.nw.role==='bmc'){if(s.nw.cts&&s.nw.cts.length){const one=s.nw.cts.length===1;s.nw.cts.forEach(c=>o.push(sp('',`${one?'CPU':c[0]} ${c[1]}${one?' °C':'°'}`)))}else if(nn(s.nw.ct))o.push(sp('',`CPU ${Math.round(s.nw.ct)} °C`));if(nn(s.nw.watts))o.push(sp('',`${Math.round(s.nw.watts)} W`))}
  else if(s.nw&&!['nas','san'].includes(s.nw.role)){if(s.nw.tr){o.push(sp('ti1','↓ '+rate(s.nw.tr[0])));o.push(sp('ti2','↑ '+rate(s.nw.tr[1])))}}
  else{if(nn(s.cpu))o.push(sp(lv[lvl('cpu',s.cpu)],`CPU ${Math.round(s.cpu)}%`));if(nn(s.mem))o.push(sp(lv[lvl('mem',s.mem)],`MEM ${Math.round(s.mem)}%`));const dk=(s.disks||[]).filter(d=>d.t>0);if(dk.length){const m=Math.max(...dk.map(used));o.push(sp(lv[lvl('disk',m)],`DISK ${Math.round(m)}%`))}}
  return o.length?`<span class="cu">${o.join('')}</span>`:''};

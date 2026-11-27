@@ -290,3 +290,5 @@ form.card.inline{align-items:flex-end}
 .srv.cmp.warn .ign.mini:not(.on){background:var(--warn);border-color:var(--warn);color:#1b1b1b}.srv.cmp.bad .ign.mini:not(.on){background:var(--bad);border-color:var(--bad);color:#fff}.srv.cmp .ign.mini.on{background:var(--mut);border-color:var(--mut);color:var(--card)}
 
 .srv.cmp .cu .cr{margin-left:auto;color:var(--tx)}
+.srv.cmp .ign.mini{width:17px;height:17px;top:7px;right:7px;font-size:11px;display:grid;place-items:center;padding:1px 0 0;box-sizing:border-box;border:1px solid rgba(0,0,0,.45)}.srv.cmp .cn.hasign{padding-right:22px}
+.srv.cmp.warn .ign.mini:not(.on){border-color:color-mix(in srgb,var(--warn) 55%,#000)}.srv.cmp.bad .ign.mini:not(.on){border-color:color-mix(in srgb,var(--bad) 55%,#000)}

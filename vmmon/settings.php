@@ -121,6 +121,7 @@ c.oninput=function(){if(+w.value<=+c.value)w.value=Math.min(364,+c.value+1);if(+
 <div class="card" style="margin-top:12px">
 <h4 style="margin-top:0"><?= t('Normal vy','Normal view') ?></h4>
 <div class="chk-g"><?php foreach(['cpu'=>'CPU','mem'=>t('Minne','Memory'),'disk'=>t('Disk','Disk')] as $hk=>$hn): ?><label class="chk"><input type="checkbox" name="hover_<?= $hk ?>" value="1"<?= setting('hover_'.$hk,'1')==='0'?'':' checked' ?>> <?= $hn ?></label><?php endforeach; ?><?= ib('Visa en graf över senaste 24 timmarna när man håller musen över mätaren på ett kort.','Show a graph of the last 24 hours when the mouse is over the gauge on a card.') ?></div>
+<br>
 <label class="chk"><input type="checkbox" name="hover_dk" value="1"<?= setting('hover_dk','1')==='0'?'':' checked' ?>> <?= t('Docker: visa containrar vid hover över ”N / M körs”','Docker: show containers when hovering “N / M running”') ?><?= ib('Visar en lista med containrar som körs (och de som inte gör det) när man håller musen över raden Containrar på ett kort.','Shows a list of the containers that are running (and those that are not) when the mouse is over the Containers row on a card.') ?></label><br>
 </div>
 <div class="card" style="margin-top:12px">

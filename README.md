@@ -2,10 +2,10 @@
 
 **Official website and documentation: <https://vm-monitor.com>**
 
-A self-hosted monitoring dashboard for small and mid-sized infrastructure, written in PHP 8 + MariaDB/MySQL.
-Servers (Linux/Windows), virtualisation hosts, network devices, storage, BMC/IPMI, TCP/URL/certificate checks,
-SNMP traps and syslog – with alert rules you can read, e-mail / Telegram / webhook / SMS notifications and a compact dashboard.
+A powerful, modern and simpler alternative to LibreNMS. VM Monitor is a self-hosted monitoring system written in PHP 8 and MariaDB/MySQL.
 
+Monitor servers, virtualisation hosts, network devices, storage and BMC/IPMI through SNMP, SNMP traps, syslog, the Zabbix agent
+(active and passive), and TCP, URL and certificate checks. Readable alert rules send notifications by e-mail, SMS, Telegram, Signal and webhook.
 
 ## Screenshots
 

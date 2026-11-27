@@ -1,213 +1,3 @@
-INSTALLATION (PHP 8+, tillägg: curl, openssl, pdo_mysql, snmp (för SNMP-checks))
-1. Ta bort gamla databasen (DROP DATABASE vmmon;) och kör: mysql -u root -p < sql/schema.sql  + DB-användare med rättigheter på vmmon.*
-2. Redigera config.php (DB-uppgifter). Lägg filerna i webbroten, kör över HTTPS.
-3. Skapa admin-kontot (e-post krävs för glömt lösenord). Gå till Inställningar och fyll i SMTP + intervall.
-4. Lägg till servrar (namn, IP, Linux/Windows) och checks. Skapa universella larmregler under Larmregler.
-Ingen cron: dashboarden anropar api/poll.php var 15:e sekund – pollning och larm körs bara medan någon har dashboarden öppen.
-
-UPPGRADERA FRÅN FÖREGÅENDE VERSION: kör sql/migrate_v3.sql (lägger till kolumnen servers.info).
-EXAKT LINUX-VERSION (valfritt): skapa /usr/local/bin/osrelease.sh (chmod +x) med innehållet:
-  #!/bin/sh
-  . /etc/os-release; echo "$PRETTY_NAME"
-lägg i snmpd.conf:  extend osrelease /usr/local/bin/osrelease.sh
-(om snmpd använder en begränsad view måste .1.3.6.1.4.1.8072 vara tillåten), starta om snmpd.
-Utan detta härleds Ubuntu/Debian-version från kernelversionen.
-UPPGRADERA FRÅN v3: kör sql/migrate_v4.sql (target blir TEXT så många dolda diskar ryms).
-UPPGRADERA FRÅN v4: kör sql/migrate_v5.sql (tabell för belastningshistorik). Graferna fylls på från och med uppgraderingen.
-UPPGRADERA FRÅN v5: kör sql/migrate_v6.sql (kolumn för dolda service checks).
-UPPGRADERA FRÅN v6: kör sql/migrate_v7.sql (service checks-kort, underhållsläge, nätverkstabeller och nya larmtyper).
-Nätverksdata hämtas av SNMP-checken (IF-MIB); hastigheter räknas ut från räknare, så graferna börjar visa data efter ett par minuter.
-DB-UPPGIFTER: lägg dem i config.local.php (se config.local.php.example) – då kan config.php ersättas vid uppdateringar utan att du skriver om dem.
-UPPGRADERA FRÅN v7: kör sql/migrate_v8.sql (användares senaste inloggning/aktivitet + historik för check-statusbyten).
-UPPGRADERA FRÅN v8: kör sql/migrate_v9.sql (kolumn för ignorerade serverkort).
-UPPGRADERA FRÅN v9: kör sql/migrate_v10.sql (aktivera/inaktivera, Telegram/larmkanaler, SNMP v3). Larmmottagare flyttas till Inställningar > Larmkontakter.
-UPPGRADERA FRÅN v10: kör sql/migrate_v11.sql (webhook som larmkanal). Lösenord/tokens lagras nu krypterade; nyckeln ligger i secret.php som skapas automatiskt – ta backup på den (utan den måste lösenorden skrivas in igen).
-UPPGRADERA FRÅN v11: kör sql/migrate_v12.sql (inaktivera användare, nytt målsystem för larmregler).
-UPPGRADERA FRÅN v12: kör sql/migrate_v13.sql (kommentar på servrar).
-HYPERVISORS: VMware ESXi identifieras via SNMP (sysObjectID/sysDescr) och VM-listan hämtas ur VMWARE-VMINFO-MIB (aktivera SNMP på ESXi: esxcli system snmp set --communities <community> --enable true). Proxmox VE identifieras via kernelnamnet (-pve); där finns ingen officiell MIB, så körande VM:ar härleds ur processlistan (net-snmp-vyn måste släppa igenom .1.3.6.1.2.1.25.4).
-UPPGRADERA FRÅN v13: kör sql/migrate_v14.sql (Hosts: Proxmox/VMware/Hyper-V + nya larmtyper).
-HOSTS: Proxmox via API-token (Datacenter > Permissions > API Tokens, roll PVEAuditor, avmarkera 'Privilege Separation' eller ge token samma roll). VMware ESXi via SNMP. Hyper-V via Zabbix-agent (nycklarna wmi.getall måste vara tillåtna). Hosts är rader i tabellen servers (hv_type) så borttagning/cascade, underhållsläge, ignore och kortordning fungerar som för servrar.
-UPPGRADERA FRÅN v14: kör sql/migrate_v15.sql (dolda VM:ar/storage på host-kort).
-
-BAKGRUNDSPROCESS (rekommenderas – annars körs kontroller och larm bara när någon har dashboarden öppen):
- Linux: kopiera vmmon-worker.service till /etc/systemd/system/, justera sökvägar/User, sedan:
-   systemctl daemon-reload && systemctl enable --now vmmon-worker
- Windows: nssm install VMMonitor php.exe C:\sökväg\worker.php   (eller Schemalagd aktivitet vid start)
- Utan tjänst: cron/Schemaläggare varje minut:  php /sökväg/worker.php --for=55
- PHP för kommandoraden (php-cli) måste ha tilläggen pdo_mysql, curl, openssl och snmp (kontrollera med: php -m).
- Når worker.php är igång hoppar dashboarden över egen pollning. Dör den tar webbläsaren över automatiskt.
-
-LOGGAR: journalctl -u vmmon-worker -f   (eller: systemctl status vmmon-worker). Du ska se 'startar', 'kördes: N kontroller…' vid första cykeln och 'lever: …' var 10:e minut. Prova för hand: sudo -u www-data php worker.php --once
-
-UPPGRADERA FRÅN v15: kör sql/migrate_v16.sql (Nätverk: switchar/routrar/brandväggar, dölj kort på dash, nya larmtyper).
-NÄTVERK: meny Nätverk. Lägg till Cisco, Meraki, HP ProCurve (t.ex. 2530), Aruba AOS-CX, Huawei, UniFi, OPNsense, pfSense eller annan SNMP-enhet och välj roll (Switch/Router/Brandvägg). Ping + SNMP; interface, trafik, fel, CPU, minne, temperatur, fläktar och nätdelar (där enheten stöder det). Intervall under Inställningar. Larmtyper: enhet svarar inte på SNMP, temperatur, fläkt/nätdel – samt CPU/minne/interface-regler som för servrar.
-Knappen Dölj från dash finns nu på Servrar, Virtualisering, Tjänster och Nätverk.
-
-UPPGRADERA FRÅN v16: kör sql/migrate_v17.sql (larmtyp 'nätverksenhet svarar inte på ping' + SMS som larmkanal).
-ZABBIX-AGENT: ~60 färdiga kontroller i grupper (System, Minne, Disk och filer, Processer och tjänster, Nätverk, Windows, Applikationer) samt egen item-key. Valfritt villkor för OK, t.ex. <90, >=1, =active, ~text. Agenten måste tillåta monitorns IP i Server= (passiva kontroller, port 10050). Använd Testa nu för att se agentens exakta felmeddelande. system.run stöds inte avsiktligt.
-SMS: Inställningar > Notifieringar > SMS (REST-API). Mallar för 46elks och Twilio. Välj SMS som kanal i larmregeln.
-
-DASHBOARD: sortering (Egen layout / Kritikalitet) väljs på dashboarden och sparas i webbläsaren. Ljudsignal vid ny kritisk status kan stängas av under Inställningar > Allmänt.
-
-UPPGRADERA FRÅN v17: kör sql/migrate_v18.sql (tabell för applikationsloggen: Inställningar > Loggar).
-Rutan med Pausa larm / Inaktivera / Dölj från dash är nu gemensam för server-, host-, nätverks- och tjänstesidor. Dolda kort övervakas och larmar som vanligt.
-
-Ingen ny migrering för denna version (kräver v18). Panelen Tjänster och kontroller (checks_lib.php) är nu gemensam för server-, host- och nätverkssidor. Loggvyn har källor Inloggning/SNMP/TCP/URL/Zabbix/Proxmox/VMware+Hyper-V/Worker/Larm/Konfiguration och egen lagringstid (Inställningar > Allmänt > Spara loggar). Worker-loggen läser även systemd-journalen om webbserver-användaren ingår i gruppen systemd-journal.
-
-UPPGRADERA FRÅN v18: kör sql/migrate_v19.sql (larmtyp: tjänst/TCP-svarstid över X ms).
-
-Uppgradering (svarstid + värdkontroller):
-- Ingen migrering. Ersätt checks_lib.php, settings.php, index.php, assets/app.js, assets/style.css.
-- Ny slider "Svarstid" (ms) under Inställningar > Allmänt: normal/varning/kritisk. Färgar ms-märket på tjänstekort och påverkar kortets status.
-- Proxmox API / VMware SNMP / Hyper-V-agent och nätverksenheters SNMP visas nu som egen rad i "Tjänster och kontroller".
-
-Uppgradering (hv_ping): ingen migrering. Ersätt lib.php, alerts.php, host.php, netdev.php. Larmregel "Host svarar inte på ping" tillagd, "Uppdatera nu"-knappen borttagen (Testa nu finns i tabellen).
-
-TCP-svarstid mäter nu bara uppkopplingen, inte väntan på bannern (SMTP-hälsning kunde ge ~2000 ms och göra kortet kritiskt). Ersätt lib.php.
-
-Dashboard: tjänstchips färgas gula/röda vid långsam svarstid och kortet visar en rad med orsaken. Ersätt assets/app.js och assets/style.css.
-
-UPPGRADERA FRÅN v19: kör sql/migrate_v20.sql (TCP/URL-kontroller: välj Upp/ner och/eller Svarstid (ms) per kontroll; befintliga får upp/ner på, svarstid av). Ersätt checks_lib.php, services.php, lib.php, api/data.php, assets/app.js, assets/style.css, sql/schema.sql.
-Svarstid styrs av slidern under Inställningar > Allmänt och påverkar bara kontroller där Svarstid är ibockad.
-
-Loggar: sammanfattning per källa (TCP, URL, Zabbix, SNMP, Proxmox/VMware/Hyper-V) var 10:e minut, samt loggrad när svarstiden byter nivå (normal/varning/kritisk) för kontroller med Svarstid ibockad. Larmtypen svarstid gäller bara kontroller med Svarstid ibockad. Ersätt lib.php och logs.php.
-
-IKONER: dashboardkorten har en ikon före namnet (assets/icons/, se README.txt där). Inga migreringar. Ersätt assets/app.js, assets/style.css och mappen assets/icons.
-
-Dashboard: översta rutan visar Servrar/Nätverk/Virtuella/Tjänster var för sig, och Inaktiva och Ignorerade visas alltid (även 0). Ersätt assets/app.js och assets/style.css.
-
-MOBILMENY + SIGNAL: toppmenyn blir en hamburgermeny på skärmar under 900 px. Ny notifieringstyp Signal (via egen signal-cli-rest-api, se Inställningar > Notifieringar). Kör sql/migrate_v21.sql. Ersätt config.php, lib.php, alerts.php, settings.php, sql/schema.sql och assets/style.css.
-
-ZABBIX AGENT2: vmmon skickar nu förfrågan med Zabbix-protokollets header (ZBXD) – krävs av Agent2, annars i/o timeout i agentloggen. Ersätt lib.php. Inga migreringar.
-
-DASHBOARD: sortering heter nu Egen / Kritikalitet. Ny vy Normal / Kompakt (10 kort per rad på bred skärm: namn, IP/värdnamn, OS/modell och status). Valen sparas per användare i databasen. Kör sql/migrate_v22.sql. Ersätt index.php, api/pref.php (ny), assets/app.js, assets/style.css, config.php och sql/schema.sql. Rättat: i mobilmenyn dolde klassen .nm kortens mätarnamn på smala skärmar – bytt till .nvm.
-
-DASHBOARD: Sortering och Vy är nu ikonknappar (flytta / varning, stora / små rutor) med hjälptext vid hovring. Ersätt assets/app.js och assets/style.css. Inga migreringar.
-
-FIX: sortering/vy-knapparna reagerar direkt igen (dashboarden hoppade över omritning medan musen låg över knapparna). Ljud: försöker aktiveras direkt vid sidladdning och vid fler typer av klick/tryck. Ersätt assets/app.js.
-
-Dashboard kompakt vy: samma avstånd under statusrutorna som i normal vy. Ersätt assets/style.css.
-
-Dashboard: sortering/vy faller tillbaka på webbläsaren om kolumnerna dash_sort/dash_view saknas (sql/migrate_v22.sql ej körd). Ersätt index.php och assets/app.js.
-
-IKONER: dashboarden listar assets/icons automatiskt och begär bara filer som finns (inga 404 i konsolen). Egen ikon = lägg filen i assets/icons med rätt namn. Favicon tillagd. Ersätt index.php, config.php, assets/app.js och assets/icons/README.txt.
-
-DASHBOARD: i kompakt vy visas normalt kort som förhandsvisning när man hovrar (efter 0,25 s, bredvid kortet). Ersätt assets/app.js och assets/style.css.
-
-DASHBOARD: förhandsvisningen i kompakt vy växer nu ut från kortet (överlappar det) i stället för att ligga bredvid; webbläsarens egen tooltip på kompakta kort borttagen. Ersätt assets/app.js.
-
-SERVICES: klicka på en rad på Services-sidan för att visa svarstid (ms) över tid (24h/7 dagar/30 dagar/Allt). Historik sparas från och med nu (5-minutersfack, samma lagringstid som övrig historik). Kör sql/migrate_v23.sql. Ersätt services.php, lib.php, sql/schema.sql, assets/style.css och api/svc_ms.php (ny).
-
-SERVICES: raderna går nu hela vägen ut (knappcellen var flex), tooltip på raderna borttagen. Ersätt services.php och assets/style.css.
-
-TABELLER: radlinjerna går nu hela vägen ut på alla sidor med knappkolumn (Servers, Network, Virtualization, Alert rules, Users, Services, checkpaneler). Ersätt bara assets/style.css.
-
-SERVERS: nya kolumner CPU och Minne med staplar (samma trösklar som dashboarden). KONTROLLER: rader i Services and checks (server-, host-, nätverks- och Services-sidorna) färgas grön/gul/röd efter status. Ersätt lib.php, servers.php, checks_lib.php, services.php och assets/style.css. Inga migreringar.
-
-TABELLER: hela raden är klickbar på Servers/Virtualization/Network (Ctrl-klick öppnar i ny flik). Diskar (server) och Storage (host) färgas grönt/gult/rött efter fyllnadsgrad och diskgränserna i Inställningar. Listan med dolda diskar visas inte längre i SNMP-raden. Ersätt lib.php, checks_lib.php, server.php, host.php, servers.php, hosts.php, network.php, config.php och assets/style.css.
-
-HOST/NÄTVERKSENHET: API-/SNMP-raden i Services and checks har nu Inaktivera, Dölj från dash och Ta bort (påverkar hela enheten). Ersätt checks_lib.php, hosts.php och network.php.
-
-LISTOR: namnen på Servers/Virtualization/Network är fet text (hela raden är klickbar). Servers har ny kolumn Tjänster (antal aktiva kontroller per server). Ersätt servers.php, hosts.php, network.php och assets/style.css.
-
-GRAF: klicka på en TCP/URL-kontroll i Services and checks (server, host, nätverksenhet) för svarstidsgraf, som på Services-sidan. Delad kod i assets/msgraph.js. Servers: Tjänster-kolumnen centrerad. Kräver sql/migrate_v23.sql. Ersätt checks_lib.php, services.php, servers.php, assets/msgraph.js (ny) och assets/style.css.
-
-DASHBOARD: grafer vid musöver även för disk (diskanvändning 24 h). Inställningar > Allmänt: varje graf (CPU, Minne, Disk) kan stängas av. Historik börjar sparas efter sql/migrate_v24.sql. Ersätt lib.php, index.php, settings.php, sql/schema.sql, assets/app.js och api/disk.php (ny).
-
-DASHBOARD: Redigera-läge. Knappen Edit under ljudtexten öppnar redigeringsläge: dra korten, Add graph (guide: typ > enhet > graf, 1 eller 2 grafer per kort, 1 eller 2 kort bred), Spara/Avbryt. Utanför redigeringsläge går korten inte att flytta. Fungerar i både normal och kompakt vy. Layouten (inkl. grafkort) sparas per användare. Kör sql/migrate_v25.sql. Ersätt index.php (oförändrad), api/data.php, api/order.php, api/gcard.php (ny), api/graph_opts.php (ny), assets/app.js, assets/style.css och sql/schema.sql.
-
-DASHBOARD: egen kortordning för Normal och Kompakt vy, sparas per användare. Kompakt använder normal ordning tills du sparat en egen. Vybyte är låst i redigeringsläget. Kör sql/migrate_v26.sql. Ersätt api/data.php, api/order.php, api/gcard.php, assets/app.js, assets/style.css och sql/schema.sql.
-
-Uppgradering (kompakt vy, grafkort 2 kort höga):
-  Ersätt assets/style.css och assets/app.js. Ingen migrering.
-
-Uppgradering (grafer: tidsperiod + per vy):
-  1. Kör sql/migrate_v27.sql (dash_graphs.v).
-  2. Ersätt api/data.php, api/gcard.php, assets/app.js, assets/style.css, sql/schema.sql.
-
-Uppgradering (grafkort per vy, avbryt ångrar borttagning): ersätt assets/app.js. Ingen ny migrering (kräver v27).
-
-Uppgradering (kortare hjälptexter, Proxmox-kort, rubriker): ersätt assets/app.js, host.php, netdev.php.
-
-Uppgradering (texter borttagna, "Edit dash", språkväljare): ersätt network.php, hosts.php, services.php, config.php, assets/app.js, assets/style.css.
-
-Historik: filter och graf (ingen migrering krävs)
-  Ersätt history.php och assets/style.css. På Historik finns filter för tid (från/till + snabbval 24 h/7/30/90 dagar),
-  servrar (flera), regel/check (flera) och händelse (flera), samt "Återställ filter". Ovanför tabellen visas en graf med antal
-  händelser per intervall (auto/timme/dag/vecka) för valt tidsspann; klicka på en stapel för att filtrera på just det intervallet.
-
-Uppgradering: historik knyts till server-id (sql/migrate_v28.sql)
-  Kör sql/migrate_v28.sql en gång i MySQL. Den lägger till server_id i alert_log och check_events och fyller i id för befintliga rader
-  där namnet entydigt matchar en server. Ersätt lib.php, api/data.php, history.php, sql/schema.sql och assets/style.css.
-  Dashboardkortets namn räknas nu av funktionen srv_title() i lib.php (samma som förut: värdnamn från SNMP/Zabbix, annars IP, annars ditt namn),
-  och Historik visar samma namn i listan och tabellen. Ett omdöpt eller omkonfigurerat namn tappar inte längre historiken.
-
-Sortering i tabeller (ingen migrering)
-  Ny fil assets/tsort.js (laddas via bottom() i config.php). Klicka på en kolumnrubrik för att sortera stigande, klicka igen för fallande
-  (pil visas). Naturlig sortering: 1, 2, 10; IP-adresser och interface-namn som Gi1/0/10 sorteras rätt. Tomma värden hamnar sist.
-  Interface-listan på server.php och netdev.php sorteras nu naturligt som standard.
-  Ersätt config.php, server.php, netdev.php, assets/style.css och lägg till assets/tsort.js.
-
-Proxmox: värdnamn och generell info + sortering efter storlek (ingen migrering)
-  Ersätt lib.php, host.php och assets/tsort.js. Efter nästa pollning av Proxmox-hosten (eller knappen "Uppdatera") visas värdnamn (nodnamn),
-  kluster, noder med IP, kernel, CPU-modell/sockets/kärnor/trådar, belastning, swap, systemdisk och uptime på host.php.
-  Kräver samma token som förut (PVEAuditor med Propagate på /). Saknas rättighet för någon av de nya anropen visas bara fälten som inte gick att hämta.
-  En host utan eget namn får nu nodens värdnamn som kortnamn i stället för IP-adressen (när det är en enda nod).
-  Tabellsortering: värden med enhet (KB/MB/GB/TB, Mbit/s, "2 h 5 min", "3d 4h 5m") sorteras nu efter faktiskt värde.
-
-v29: Titel = hostname (annars IP, eller eget namn om inställningen "Visa eget namn..." är på) på dashboardkort och sidrubriker. Uptime-procent för Proxmox/SNMP-API-raden beräknas från händelsehistoriken. Ingen migrering.
-v30: CPU/minnes-graferna visar nu även max-linje för 24h (tidigare bara >25h).
-v31: Kontolåsning. Kör sql/migrate_v29.sql (users.locked_until + tabellen login_fail). Inställningar: Settings > General > Användarinställningar.
-v32: Låsmeddelande direkt vid låsning. Betrodda proxyservrar (Settings > General > Användarinställningar) gör att riktig besökar-IP loggas bakom Nginx Proxy Manager.
-v33: Settings > General: ny ruta Allmänna inställningar överst, (i)-knappar med förklaringar istället för hjälptexter.
-v34: General settings: fälten under varandra med underrubrikerna History och User settings.
-v35: General settings innehåller nu intervall och gränsvärden. Separata Spara-knappar för General settings och Dashboard settings.
-v36: Profilsida (klicka på användarnamnet i menyn): byt lösenord, TOTP med QR-kod och återställningskoder. Kör sql/migrate_v30.sql.
-v37: Passkeys (WebAuthn) på profilsidan och på inloggningen, samt "Kräv tvåstegsverifiering" under Settings > General > User settings. Kör sql/migrate_v31.sql. Passkeys kräver HTTPS och domännamn.
-v38: Kom ihåg enhet vid TOTP, sessionslängd och byte av e-post med bekräftelselänk. Kör sql/migrate_v32.sql.
-v39: Settings: Account lockout i egen underrubrik på en rad, kortare etikett för Virtualization.
-v40: Borttagna knappar: Services and checks (servers), View/Test now (virtualization, network). Raderna är klickbara.
-v41: Rensning av utgångna inloggningsförsök, ihågkomna enheter och e-postbekräftelser ingår nu i den automatiska städningen.
-v42: Misslyckade inloggningsförsök sparas lika länge som Keep history.
-v43: Loggar alltid på engelska. Språkval flyttat till profilsidan; engelska är standard (sql/migrate_v33.sql är valfri).
-v44: Hostkort visar OS (t.ex. Proxmox VE 9.2.26) och smalare etikettkolumn. Proxmox Backup Server känns igen via SNMP (visas som PBS, inte som Proxmox VE utan VM:ar) och får källan PBS API under Services and checks: CPU/minne/datastores, misslyckade jobb och ålder på senaste backup. Kör sql/migrate_v34.sql.
-v45: PBS API är nu en enda kontroll som hämtar allt: CPU, minne, datastores, jobb (backup, prune, verify, GC, sync) med status på senaste körning och ålder på senaste backup. Visas som en backupruta på dashboardkortet. Ta bort de gamla PBS-kontrollerna (Failed tasks / Latest backup) manuellt. Ingen migrering.
-v46: Servervyn för PBS har en tabell "Backup jobs" där jobb och senaste backup per datastore kan döljas/visas på dashboarden. Ingen migrering.
-v47: Dölj/Visa, Aktivera/Inaktivera och Test now i tabeller uppdaterar bara den raden utan omladdning (scrollposition och sidan står still), och statusmeddelanden visas vid muspekaren. Övriga knappar laddar om sidan men behåller scrollpositionen. Workern startar om sig själv när PHP-filerna ändras (annars körs gammal kod i upp till en timme efter uppgradering – kör annars: systemctl restart vmmon-worker).
-v48: Samma avstånd (16 px) mellan kortrader på dashboarden som mellan korten i sidled, även under sammanfattningsraden.
-v49: Virtuella maskiner känns igen (MAC-prefix och hårdvarubeskrivningar via SNMP, samt namnträff mot VM:ar i övervakade Proxmox/VMware/Hyper-V-hostar) och får en extra VM-ikon bredvid OS-ikonen på dashboarden samt raden "Virtual machine" på serversidan. Switchar, hostar och tjänster hoppas över. Ingen migrering; datat fylls i vid nästa SNMP-kontroll.
-v50: Settings > SNMP > Custom OIDs: välj med en dropdown vilka servrar varje OID ska kontrolleras mot (inga valda = alla). OID:n hämtas bara på de valda. Ingen migrering.
-v51: Egna OID:er kan även väljas per virtualiseringshost och nätverksenhet (listan är grupperad). Värdena visas på host- och nätverkssidorna. Proxmox/Hyper-V-hostar kontrolleras bara om de väljs uttryckligen (standard-community). Ingen migrering.
-v52: Normalvyn på dashboarden: alla kortrader är lika höga som grafkortet (mäts automatiskt, minst 360 px). Rubrik (ikon, namn, IP/OS, status) och chips ligger alltid kvar, mellandelen scrollar om innehållet är längre. Linjen ovanför backupjobb-rutan på PBS-kortet är borttagen.
-v53: Grafkort med en graf (1 eller 2 kolumner bred) fyller hela kortet i normalvyn i stället för att se tomma ut.
-v54: Grafkort för tjänster visar bara "Response <tjänst>" utan prefixet "Services".
-v55: Proxmox hämtar nu nätverksgränssnitt via API (noder, nodtrafik, VM-nätkort) och visar dem på host-sidan. Alla interface kan visas/döljas på dashboardkorten för servrar, nätverksenheter och virtuella hosts (standard: dolda, kräver sql/migrate_v35.sql). Agent-port-fältet för Hyper-V är bredare.
-v56: Proxmox med flera noder får ett kort per nod på dashen (döljs per nod på host-sidan). Scrollen i korten bevaras vid auto-uppdatering. Nya larmtyper: SNMP/Zabbix-agent/PBS API svarar inte. Fläkt-/nätdelssensorer kan döljas på nätverksenhetens sida (påverkar kort och larm). Kräver sql/migrate_v36.sql.
-v57: Sammanfattningsraden på dashen har en ny ruta efter den första som visar om bakgrundstjänsten (systemctl) körs och när den senast sågs (api/worker.php). Rutorna är mindre och texterna centrerade.
-v58: Kortare ljudtext (Click page) och borttagen redigeringstext i summeringsraden.
-v59: I redigeringsläget flyter Lägg till graf/Spara/Avbryt i en panel längst ned på sidan.
-v60: Edit dash-knappen finns kvar i redigeringsläget (orange, 'Redigeringsläge', inaktiv).
-v61: Fri rutnätslayout – i redigeringsläget visas ett rutnät med tomma celler; dra kort till en tom cell (luckor tillåtna) eller släpp på ett kort av samma storlek för att byta plats. Positionerna sparas per användare och vy (kräver sql/migrate_v37.sql) och gäller när sorteringen är 'Egen ordning' och kolumnantalet är samma som när layouten sparades.
-v62: Fix – 2 breda grafkort behåller sin bredd (och höjd i kompakt vy) i redigeringsläget i rutnätslayouten.
-v63: SMART-diskhälsa. Via SNMP: Synology-NAS direkt (Synology-MIB) och Linux/TrueNAS via snmpd-extend med extras/vmmon-smart.sh (se kommentarerna i skriptet). Via Zabbix: ny kontroll "SMART-diskhälsa" (kräver Agent 2 + smartctl). Visas på serversidan (tabell), på dashkortet (summering, problemdiskar listas) och som larmtyp "Diskhälsa (SMART) varnar eller felar". Kräver sql/migrate_v38.sql.
-v64: SMART-diskhälsa även via Proxmox VE API (per nod, /disks/list + /disks/smart, kräver Sys.Audit på /nodes) och PBS API (kräver Sys.Audit på /system/disks). Visas på host-/serversidan, på korten (per nod) och i larmtypen Diskhälsa.
-v65: PBS: visar orsaken på serversidan när SMART/diskar inte kan hämtas (t.ex. 403 = saknar Sys.Audit på /system/disks).
-v66: Ny sida Storage (storage.php) för NAS och SAN: samma upplägg som Network – ping läggs till automatiskt, SNMP v2c/v3 eller 'Ingen SNMP (bara ping)'. Dashkort med egna ikoner (nw-nas.svg / nw-san.svg, samt nw-<tillverkare>-<roll>.svg), volymer/kapacitet, SMART (SNMP), fläkt/nätdel/temperatur. Synology-MIB stöds (temp, fläktar, nätdel, modell). Enheten får detaljsida (netdev.php) med volymer och SMART. Ingen ny migrering.
-v67: Lagring: RAID/pool/volym/disk-status via SNMP per tillverkare – Synology (RAID), QNAP (diskar/volymer), NetApp (systemstatus, felande diskar, fläktar, nätdelar, CPU), Dell (iDRAC/OpenManage: system, virtuella/fysiska diskar), HPE (ProLiant/StoreEasy: system, logiska/fysiska diskar), TrueNAS (zpool). Nya tillverkare i listan: IBM, Hitachi, Pure Storage, Huawei OceanStor, Lenovo (standard-SNMP). Visas på dashkortet, detaljsidan, Storage-listan och som larmtyp 'Lagring: RAID/pool/volym'. Kräver sql/migrate_v39.sql.
-v68: Storage-enheter: volymer, lagringsstatus (RAID/pool) och SMART-diskar kan döljas/visas på dashkortet från enhetens sida.
-v69: Storage: ingen NAS/SAN-väljare (alla är NAS), kortare modelltext (TrueNAS-13.0-U6.8 / TrueNAS-SCALE-24.10.1).
-v70: TrueNAS diskTemperaturer (50536.3.1), 'hälsa okänd' när status saknas, NAS-rollen/Typ-raden borttagen på storage-kort
-v71: TrueNAS API (CORE+SCALE): valfri API-nyckel/port/cert-verifiering på Lagring-sidan. Hämtar pool-status (ONLINE/DEGRADED), pool-kapacitet, diskar med modell/serienr/temperatur, SMART-testresultat och aktiva TrueNAS-larm (/api/v2.0). Fungerar även med 'Ingen SNMP'. Pool/larm-fel ger status i 'Hälsa' och kan larmas via nw_health. Fixade även Ändra-länken på Lagring (pekade på network.php).
-v72: 'TrueNAS API' som val i Tjänster och kontroller på TrueNAS-enheter (nyckel/port/cert), egen rad med Ändra/Ta bort.
-v73: Testa nu på TrueNAS API-raden.
-v74: TrueNAS API försöker även läsa SMART-attribut per disk (disk/smart_attributes): drifttimmar, omallokerade, pending. Testa nu visar hur många diskar som gav värden.
-v75: Seagate Power_On_Hours-raw (timmar i låga 32 bitar, resten millisekunder) maskas till rätt värde.
-v76: SMART-rutan på dashen visar bara sammanfattning (X diskar, N varning), inte enskilda diskrader. TrueNAS API: fler attributnamn för omallokerade/pending (SSD).
-v77: TrueNAS API: uptime-statistik (24h/7d/30d/totalt via tillståndsbyten) och Inaktivera/Aktivera-knapp (inaktiverat API → SNMP-fallback eller bara ping).
-v78: Summeringsrutan Servers/Network/Storage/Virtual/Services ryms på en rad.
-v79: KÖR sql/migrate_v40.sql. (1) Teman: Min profil > Tema (Standard = ursprungliga färger, nya användare får Standard; Light, Monokai, Monokai Dark, Monokai Dimmed, Dark, Dark Modern, Nord). Egna teman: lägg en .css i themes/custom/ (mall och variabler i themes/README.txt) – de indexeras automatiskt. (2) Larmregler: schema med dagar (mån–sön), tidsintervall (kan gå över midnatt) och 24/7-ruta som gråar ut dag/tid. Utanför schemat skickas inga nya larm. (3) Ny larmtyp "Zabbix-kontroll fallerar" där man väljer vilka av Zabbix-agentens kontroller som ska larma. (4) (i)-ikon vid Svarstid (ms) på Tjänster/kontroller. (5) 10 larmljud: globalt val under Inställningar > Allmänt (Dashboardinställningar) och eget val/av per användare under Min profil.
-v80: SNMPv3-fält (användare, nivå, auth/priv) visas nu vid val av SNMP v3 när man lägger till/ändrar Server, Virtualisering (ESXi), Nätverk och Lagring. Monokai/Monokai Dimmed: varning är nu orange (tydlig mot grönt), kritisk rosa/röd, accent turkos. Ingen ny migrering.
-v81: Monokai omgjort efter Sublime Text Monokai (bakgrund #272822, grön/orange/rosa/turkos/lila). Nytt tema Monokai Dark (mörkare variant). Monokai Dimmed lite ljusare bakgrund. Ingen ny migrering.
 v1.00: New version numbering (VMMON_VERSION in config.php, raised by 0.01 per change: 1.01, 1.02 …). Profile: Site settings (language, theme, alert sound) and Account and security (email, password, TOTP, passkeys) in separate boxes with subheadings. A ? button in the menu (between user and log out) shows the name + version. The text about custom themes was removed from the profile. No new migration.
 v1.01: Profile: the subgroups in Site settings and Account and security are now side by side (columns) instead of stacked. No new migration.
 v1.02: Profile: the drop-downs (language, theme, alert sound) now have natural width instead of the full column width. No new migration.
@@ -364,13 +154,13 @@ v2.52: Trap / syslog page: automatic refresh now only reloads the event list (no
 v2.53: Trap / syslog for large volumes. log_events is now partitioned per day (run the SQL file on the Update tab; it rebuilds the table once) so retention (1-3650 days, setting Keep events for) removes whole days instantly instead of deleting rows; fewer indexes; parsed firewall lines store only the fields (original line optional) which roughly halves the size. The receiver creates the daily partitions itself and uses a 16 MB receive buffer. Flood limit default is now 6000 per sender per minute, 0 = no limit, and dropped lines are shown as a warning. The event list counts up to 10 000, defaults to the last 24 hours and pages with Newer/Older. New Storage box under Settings > Trap / syslog (rows, size, estimate for the retention).
 v2.54: Fix: the SQL migration of v2.53 failed on MariaDB (syntax error before PARTITION BY). Corrected; it can be run again safely.
 v2.55: Syslog over TCP in the receiver (Settings → Trap / syslog): optional TCP listener (default off, default port 514), newline and octet-counting framing (RFC 6587), up to 500 connections, idle connections closed after 30 min. Same parsing, filtering, rate limit and storage as UDP. No TLS. No SQL changes.
-v2.56: Daily firewall summary. The receiver counts pass/block per day, device, source, destination, protocol/port and rule in the new table log_fw_daily (counted even when 'do not store pass' is on, and independent of raw-log retention). New page History → Firewall summary with per-day totals and top sources/destinations/ports/rules, linked to the raw log. New setting 'Keep daily summary (days)' (default 730). SQL: sql/3.12.sql adds log_fw_daily. Counting starts when the update is installed.
+v2.56: Daily firewall summary. The receiver counts pass/block per day, device, source, destination, protocol/port and rule in the new table log_fw_daily (counted even when 'do not store pass' is on, and independent of raw-log retention). New page History → Firewall summary with per-day totals and top sources/destinations/ports/rules, linked to the raw log. New setting 'Keep daily summary (days)' (default 730). SQL: sql/3.13.sql adds log_fw_daily. Counting starts when the update is installed.
 v2.57: Trap/syslog history: new filters 'Rows' (firewall traffic only / other log lines such as DHCP and system) and 'Program'; the program name in each non-firewall row is clickable to show only that program. The summary page text no longer lists vendors. No SQL changes.
 v2.58: More firewall log formats parsed into the firewall fields, filters and daily summary: Cisco ASA/FTD (messages 302013/302015, 106023, 106100, 106001/106006/106015), Palo Alto (CSV TRAFFIC/THREAT), Fortinet FortiGate and Sophos XG/UTM (key=value), and more Ubiquiti variants (UniFi/EdgeRouter iptables prefixes, rule names such as WAN_IN-3000-D). Written from the vendors' documented formats, not tested against real devices. No SQL changes.
 v2.59: Trap/syslog history: the Source column now always shows the sender IP (plus the clickable program name), instead of switching between IP and host name depending on whether the row was stored compactly; the firewall filter heading is now just 'Syslog' without the vendor list. No SQL changes.
 v2.60: Alert rules: new system rule 'Trap/syslog receiver has stopped' (checks the vmmon-recv heartbeat), and the rule type 'Trap/syslog event matches' can now count per sender: group by same source IP or same destination IP, and count events, distinct destination ports (port scan), distinct destination IPs or distinct source IPs (e.g. many blocks / port scan from one IP within X minutes). Ready-made templates (many blocks from one IP, port scan, brute force SSH/RDP, link down, failed logins) fill in the fields. Grouping works on parsed firewall lines. No SQL changes.
-v2.61: Fix: saving the alert rule 'Trap/syslog receiver has stopped' failed (500) because the metric column is an ENUM; sys_recv is added to it by sql/3.12.sql (run the update so the SQL file is executed). No other changes.
-v2.62: Alert rules can be organised in groups: 'New group', drag a rule by its handle onto another group's header (saved immediately), collapse/expand groups (remembered per browser), rename/delete/reorder groups, and choose the group in the rule form (also works on touch screens). Clicking a column header sorts the rules within each group. Rules without a group are shown under 'Ungrouped'. SQL: sql/3.12.sql adds the table alert_rule_groups and alert_rules.group_id. The column sorting script (tsort.js) now treats rows with class grph as group separators.
+v2.61: Fix: saving the alert rule 'Trap/syslog receiver has stopped' failed (500) because the metric column is an ENUM; sys_recv is added to it by sql/3.13.sql (run the update so the SQL file is executed). No other changes.
+v2.62: Alert rules can be organised in groups: 'New group', drag a rule by its handle onto another group's header (saved immediately), collapse/expand groups (remembered per browser), rename/delete/reorder groups, and choose the group in the rule form (also works on touch screens). Clicking a column header sorts the rules within each group. Rules without a group are shown under 'Ungrouped'. SQL: sql/3.13.sql adds the table alert_rule_groups and alert_rules.group_id. The column sorting script (tsort.js) now treats rows with class grph as group separators.
 v2.63: Alert rule groups: no more browser popups (prompt/confirm) – new group, rename and delete use inline fields in the page. Menu: new main page 'Syslog' after Services (log lines with firewall filters, and the firewall summary as a second tab); History → 'Trap' now shows only SNMP traps. 'Device groups' moved from the main menu to Settings (tab after Notifications). No SQL changes.
 v2.64: Custom dialog boxes replace the browser's confirm()/alert() popups everywhere (delete device group, delete rule/user/server/backup, clear log, dashboard card removal, error messages…). New assets/dlg.js, loaded on every page; it works with both inline onsubmit/onclick confirms and script calls. Esc/click outside cancels. No SQL changes.
 v2.65: Fix: trap/syslog events were stamped one hour too early. The receiver runs in command-line PHP, whose time zone is UTC unless php.ini for the CLI says otherwise, while the web pages use the web server's PHP time zone. The web UI now saves its time zone (setting app_tz) and the receiver uses it. Events stored before this update keep their old (UTC) time stamps. No SQL changes.
@@ -387,7 +177,7 @@ v2.71: Syslog/Trap device filter lists only devices the receiver has received ev
 
 v2.72: HP/Aruba trap names (HP-SWITCH-BASIC-CONFIG-MIB): hpSwitchRunningConfigChange, hpSwitchStartupConfigChange and their varbinds (user, source IP, event time, sequence); address type and throttled values shown as text.
 
-v2.73: MIB upload (Settings > MIB): .mib/.my/.txt or .zip; parses OBJECT-TYPE/NOTIFICATION-TYPE/TRAP-TYPE/OID nodes and INTEGER enums (also via TEXTUAL-CONVENTION), resolves across files, lists missing imported MIBs, lookup by name/OID. Trap messages are decoded at display time (header + one line per varbind, names from built-in table and MIBs, hex IPs/dates, enum text), so old events become readable too. New tables mib_files, mib_names (run sql/3.12.sql).
+v2.73: MIB upload (Settings > MIB): .mib/.my/.txt or .zip; parses OBJECT-TYPE/NOTIFICATION-TYPE/TRAP-TYPE/OID nodes and INTEGER enums (also via TEXTUAL-CONVENTION), resolves across files, lists missing imported MIBs, lookup by name/OID. Trap messages are decoded at display time (header + one line per varbind, names from built-in table and MIBs, hex IPs/dates, enum text), so old events become readable too. New tables mib_files, mib_names (run sql/3.13.sql).
 
 v2.74: MIB parser skips OBJECT-GROUP/NOTIFICATION-GROUP/MODULE-COMPLIANCE/AGENT-CAPABILITIES (no own value; also fixes block boundaries). Tested on 436 vendor MIB files (LibreNMS MIB collection): parse 0.7 s, ~34k names.
 
@@ -399,14 +189,14 @@ v2.77: MIB page: lookup box moved above the file list; the file list is collapsi
 
 v2.78: Log alert rule templates: configuration change (HP/Cisco traps and syslog), successful login, Windows event IDs (4625 failed logon, 4728/4732/4756 group change, 4720 user created, 1102 audit log cleared, 7036 service stopped; needs the Windows event log forwarded as syslog).
 
-v2.79: Windows sessions: SNMP polling also reads logged-on user names (LAN Manager svUserName) on Windows hosts; shown on the server page; new alert rule "Logged-on users (count, at least)" (metric users, added to the alert_rules ENUM in sql/3.12.sql); RDP logon template for log rules.
+v2.79: Windows sessions: SNMP polling also reads logged-on user names (LAN Manager svUserName) on Windows hosts; shown on the server page; new alert rule "Logged-on users (count, at least)" (metric users, added to the alert_rules ENUM in sql/3.13.sql); RDP logon template for log rules.
 
 v2.80: Alert rule form: group dropdown narrower with space above the buttons.
 
 v2.81: Bundled MIB set (mibs/seed.jsonl.gz, 1468 modules / ~160 000 names: standard, Cisco, HP/Aruba/Comware, Huawei, Fortinet, Palo Alto, Sophos, UniFi/Ubiquiti, MikroTik, Meraki, Juniper, Dell, Windows, NAS/UPS and more). Loaded once by the worker on first run (setting mib_seeded) and via the button on Settings > MIB; modules you uploaded yourself are not overwritten. MIB lookups now query mib_names per OID (cached) instead of loading the whole table.
-v2.82: Alert rules can now have an optional custom name (new column alert_rules.name, run sql/3.12.sql). The name is shown in the rules list, in notification subjects/messages, alert history and webhook rule_name; empty = automatic name as before.
-v2.82 fix: the old metric ENUM ALTER inside sql/3.12.sql lacked log_event/users and failed on databases that already had such rules (Data truncated); both ALTERs now use the full list. The file is safe to re-run.
-v2.83: Re-release of 2.82 with the fixed sql/3.12.sql (version bumped so the updater accepts it on an install that already shows 2.82).
+v2.82: Alert rules can now have an optional custom name (new column alert_rules.name, run sql/3.13.sql). The name is shown in the rules list, in notification subjects/messages, alert history and webhook rule_name; empty = automatic name as before.
+v2.82 fix: the old metric ENUM ALTER inside sql/3.13.sql lacked log_event/users and failed on databases that already had such rules (Data truncated); both ALTERs now use the full list. The file is safe to re-run.
+v2.83: Re-release of 2.82 with the fixed sql/3.13.sql (version bumped so the updater accepts it on an install that already shows 2.82).
 v2.84: History → Trap tab now has the Export button. In History → Alerts, IP addresses in log-rule alert messages are links that open the syslog or trap list filtered on that IP (kind looked up from the stored events, syslog by default).
 v2.85: IP links in History → Alerts use the From IP (src) filter for firewall lines, so the syslog list actually shows the matches (the free-text search does not cover firewall fields).
 v2.86: db() now checks the connection every 5 s and reconnects, so the long-running services (recv, worker, Zabbix listener) recover on their own after a MariaDB restart instead of keeping a dead connection (which made the heartbeat stop and the settings page claim the receiver was not running).
@@ -434,5 +224,6 @@ v3.07: Compact view with full-card hover preview: clicking a card hides the prev
 v3.08: Compact view hover preview: the Ignore button in the preview can now be clicked (it no longer opens the device); the preview closes after clicking it.
 v3.09: Compact view hover preview is now a normal clickable card: Ignore works inside it, any other click opens the device, and it closes as soon as the pointer leaves it.
 v3.10: Fixed the compact view hover preview: its Ignore button and its close-on-leave now work (the handlers were bound before the preview element existed).
-v3.11: Alert templates. The main menu item is now Alert with two tabs: Alert rules and Alert templates. A template has a subject, a text, an optional short SMS text and an optional text for when the alert clears, written with variables such as %hostname, %ip, %rule, %started, %ongoingfor, %srcip, %srclist, %info (click a variable to insert it; live preview; send a test). A rule can use a template (new field on the rule form); rules without one keep the built-in text. Run sql/3.12.sql (Update page).
-v3.12: Alert templates: emoji picker and a %emoji variable (🔴 alert, ⚠️ still active, ✅ OK); 16 ready-made templates (device down, resources, users, service checks, Zabbix, hardware, network interface, virtualization, storage, BMC, Home Assistant, system, trap/syslog, brute force, standard, SMS) are created by sql/schema.sql on a new install and added once by sql/3.12.sql on upgrade; Telegram no longer adds its own emoji when a template is used. Run sql/3.12.sql (Update page).
+v3.11: Alert templates. The main menu item is now Alert with two tabs: Alert rules and Alert templates. A template has a subject, a text, an optional short SMS text and an optional text for when the alert clears, written with variables such as %hostname, %ip, %rule, %started, %ongoingfor, %srcip, %srclist, %info (click a variable to insert it; live preview; send a test). A rule can use a template (new field on the rule form); rules without one keep the built-in text. Run sql/3.13.sql (Update page).
+v3.12: Alert templates: emoji picker and a %emoji variable (🔴 alert, ⚠️ still active, ✅ OK); 16 ready-made templates (device down, resources, users, service checks, Zabbix, hardware, network interface, virtualization, storage, BMC, Home Assistant, system, trap/syslog, brute force, standard, SMS) are created by sql/schema.sql on a new install and added once by sql/3.13.sql on upgrade; Telegram no longer adds its own emoji when a template is used. Run sql/3.13.sql (Update page).
+v3.13: README.txt now only contains the version history (everything before v1.00 was removed). No migration.

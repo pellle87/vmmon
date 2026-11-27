@@ -58,7 +58,7 @@
    widths(); drawPop(); }
   var c0=0;
   function widths(){
-   var tw=tb.offsetWidth||(tb.parentNode&&tb.parentNode.clientWidth)||1000, actW=act.length?(tb.querySelector('td.inline')?130:125):0, avail; (function(){ var mx=0; [].forEach.call(tb.rows,function(r){ var td=r.cells[r.cells.length-1]; if(td&&td.tagName==='TD'&&!td.classList.contains('inline')){ var w=0; [].forEach.call(td.children,function(ch){ w+=ch.offsetWidth+6; }); mx=Math.max(mx,w); } }); if(mx+34>actW) actW=mx+34; })();
+   var tw=tb.offsetWidth||(tb.parentNode&&tb.parentNode.clientWidth)||1000, actW=act.length?(tb.querySelector('td.inline')?130:125):0, avail; (function(){ var mx=0; [].forEach.call(tb.rows,function(r){ if(r.classList.contains('grph')) return; var td=r.cells[r.cells.length-1]; if(td&&td.tagName==='TD'&&td.colSpan<2&&!td.classList.contains('inline')){ var w=0; [].forEach.call(td.children,function(ch){ w+=ch.offsetWidth+6; }); mx=Math.max(mx,w); } }); if(mx+34>actW) actW=mx+34; })();
    avail=Math.max(120,tw-actW);
    var vc=cols.filter(function(c){ return !c.act&&vis(c.k); }), wt=vc.map(function(c){ return st.w[c.k]||c.nat||120; }), sum=wt.reduce(function(a,b){ return a+b; },0)||1;
    tb.classList.add('tc-fix'); tb.style.width='100%';

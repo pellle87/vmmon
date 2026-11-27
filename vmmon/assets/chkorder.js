@@ -2,7 +2,7 @@
 (function(){var tb=document.getElementById('chk-tbl');if(!tb)return;var en=(typeof LANG!=='undefined'&&LANG==='en'),drag=null;
 function rows(){return[].slice.call(tb.querySelectorAll('tr[data-cid]'))}
 function save(){var ids=rows().map(function(r){return r.getAttribute('data-cid')}),b=new URLSearchParams();b.set('t',tb.getAttribute('data-t'));b.set('sid',tb.getAttribute('data-sid'));b.set('ids',JSON.stringify(ids));
- fetch('api/chkorder.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b.toString()}).then(function(r){return r.json()}).then(function(d){if(!d.ok)throw 0}).catch(function(){alert(en?'Could not save the order (has sql/3.13.sql been run?)':'Kunde inte spara ordningen (har sql/3.13.sql körts?)')})}
+ fetch('api/chkorder.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b.toString()}).then(function(r){return r.json()}).then(function(d){if(!d.ok)throw 0}).catch(function(){alert(en?'Could not save the order (has sql/3.14.sql been run?)':'Kunde inte spara ordningen (har sql/3.14.sql körts?)')})}
 tb.addEventListener('mousedown',function(e){var g=e.target.closest('.grip');if(!g)return;var tr=g.closest('tr');tr.setAttribute('draggable','true')});
 tb.addEventListener('mouseup',function(){rows().forEach(function(r){r.removeAttribute('draggable')})});
 tb.addEventListener('dragstart',function(e){var tr=e.target.closest&&e.target.closest('tr[data-cid]');if(!tr||tr.getAttribute('draggable')!=='true'){return}

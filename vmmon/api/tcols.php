@@ -8,4 +8,4 @@ try{ $uid=(int)$_SESSION['u']['id'];
   foreach((array)($j['w']??[]) as $a=>$b) if(preg_match('/^[a-z0-9_]{1,20}$/i',(string)$a)&&is_numeric($b)) $c['w'][$a]=max(30,min(1200,(int)$b));
   db()->prepare('INSERT INTO user_prefs(user_id,k,v) VALUES(?,?,?) ON DUPLICATE KEY UPDATE v=VALUES(v)')->execute([$uid,$k,json_encode($c)]); }
  echo '{"ok":true}'; }
-catch(Throwable $e){ http_response_code(500); echo '{"ok":false,"error":"sql/3.13.sql saknas?"}'; }
+catch(Throwable $e){ http_response_code(500); echo '{"ok":false,"error":"sql/3.14.sql saknas?"}'; }

@@ -38,6 +38,7 @@ $tot=0; $ndev=0; foreach($links as $L) if(!$L['m']) $tot++; foreach($nbrs as $l)
 <h2><?= t('Nätverkskarta','Network map') ?></h2>
 <div class="nmbar">
 <label class="chk"><input type="checkbox" id="nmports"> <?= t('Visa portnamn','Show port names') ?></label>
+<label class="chk"><input type="checkbox" id="nmgrid" checked> <?= t('Visa rutnät','Show grid') ?></label>
 <label class="chk"><input type="checkbox" id="nmunk" checked> <?= t('Visa okända grannar','Show unknown neighbours') ?></label>
 <label class="chk"><input type="checkbox" id="nmiso" checked> <?= t('Visa enheter utan koppling','Show unlinked devices') ?></label>
 <input type="search" id="nmq" placeholder="<?= h(t('Sök enhet…','Find device…')) ?>">
@@ -62,6 +63,6 @@ $tot=0; $ndev=0; foreach($links as $L) if(!$L['m']) $tot++; foreach($nbrs as $l)
 <td><form method="post" class="inline"><?= csrf_field() ?><input type="hidden" name="a" value="dellink"><input type="hidden" name="id" value="<?= h($L['id']) ?>"><button class="btn sm danger"><?= t('Ta bort','Remove') ?></button></form></td></tr>
 <?php endforeach; ?></table></div><?php endif; ?>
 <?php endif; ?>
-<script>window.NM=<?= json_encode($data,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP) ?>;window.NMADM=<?= $adm?1:0 ?>;window.NMT=<?= json_encode(csrf()) ?>;window.NMX={ln:<?= json_encode(t('Port','Port')) ?>,m:<?= json_encode(t('Egen koppling','Manual link')) ?>};</script>
+<script>window.NM=<?= json_encode($data,JSON_UNESCAPED_UNICODE|JSON_HEX_TAG|JSON_HEX_AMP) ?>;window.NMADM=<?= $adm?1:0 ?>;window.NMT=<?= json_encode(csrf()) ?>;window.NMX={is:<?= json_encode(t('Nät','Network')) ?>,iu:<?= json_encode(t('Utan koppling','Unlinked')) ?>,ln:<?= json_encode(t('Port','Port')) ?>,m:<?= json_encode(t('Egen koppling','Manual link')) ?>};</script>
 <script src="assets/netmap.js"></script>
 <?php bottom();

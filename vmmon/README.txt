@@ -255,3 +255,5 @@ v3.27: The Ignore button on dashboard cards is replaced by Pause: it pauses aler
 v3.28: The small status button on compact cards uses SVG icons (exclamation mark and pause) so they are exactly centred. No migration.
 
 v3.29: New Map page in the main menu. LLDP and CDP neighbours are collected from network devices over SNMP (in the slow round, about every 15 min) and drawn as a layered map with port names, status colours, drag to arrange (saved), pan/zoom, search and highlight. Links are matched to devices by MAC, IP or name; unknown neighbours and unlinked devices can be shown. Admins can add and delete manual links. No migration.
+
+v3.30: Map: each separate physical network (connected group of devices) is drawn as its own labelled island; unlinked devices get their own island. Admins can drag an island by its label to move all its devices. New option Show grid (draw.io style: minor/major lines that adapt to zoom level, devices snap to the grid when dragged; remembered per browser). No migration.

@@ -305,3 +305,6 @@ form.card.inline{align-items:flex-end}
 #nm .pt{font-size:10px;fill:var(--mut);pointer-events:none;paint-order:stroke;stroke:var(--card);stroke-width:3px}
 #nm .nmn{cursor:pointer}#nm .nmn rect{fill:var(--card);stroke:var(--ok);stroke-width:2}#nm .nmn.s-bad rect{stroke:var(--bad)}#nm .nmn.s-dis rect,#nm .nmn.s-unk rect{stroke:var(--off,#777)}#nm .nmn.s-unk rect{stroke-dasharray:5 3}
 #nm .nm1{font-size:13px;font-weight:600;fill:var(--tx);pointer-events:none}#nm .nm2{font-size:10.5px;fill:var(--mut);pointer-events:none}#nm .nmn.dim{opacity:.25}#nm .nmn.hit rect{stroke-width:4}
+.nmg1{stroke:rgba(128,128,128,.16)}.nmg2{stroke:rgba(128,128,128,.32)}
+.nmi rect{fill:rgba(128,128,128,.05);stroke:rgba(128,128,128,.4);stroke-dasharray:6 5;pointer-events:none}
+.nmit{font-size:13px;font-weight:600;fill:currentColor;opacity:.7;cursor:default}

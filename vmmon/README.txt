@@ -273,3 +273,5 @@ v3.36: Map: the zoom and pan position is remembered per user and restored the ne
 v3.37: Map: a device MAC is learned on every switch along the path, so only the port with the fewest MACs (the edge port) is used now instead of every switch; several NICs/bond members on the same switch give several links. No migration.
 
 v3.38: Mobile: tables (column-managed tables) use natural column widths and scroll sideways on narrow screens instead of squeezing every column to a few letters. Dashboard: when the saved own-order layout is for another number of columns than the screen has (for example on a phone), the cards are now ordered by their saved row and column, so the headline cards keep their groups. No migration.
+
+v3.39: Map: devices are labelled with their hostname (from SNMP/agent) instead of the display name, and VMs are matched to their hypervisor on hostname as well as name, so VMs named after their hostname in Proxmox are found. No migration.

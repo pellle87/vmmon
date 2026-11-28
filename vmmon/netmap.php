@@ -24,7 +24,7 @@ foreach($rows as $r){ $id=(int)$r['id']; $nd=json_decode((string)$r['nw_data'],t
  $hnm=trim((string)($nd['hostname']??($inf['hostname']??''))); $nodes[$id]=['id'=>(string)$id,'n'=>($hnm!==''?$hnm:$r['name']),'k'=>$role,'st'=>$st,'u'=>$url,'ip'=>filter_var($r['host'],FILTER_VALIDATE_IP)?$r['host']:''];
  $byName[nm_norm($r['name'])]=$id; if(!filter_var($r['host'],FILTER_VALIDATE_IP)) $byName[nm_norm($r['host'])]=$id; else $byIp[$r['host']]=$id;
  foreach([$nd['hostname']??'',$inf['hostname']??''] as $hn) if($hn!=='') $byName[nm_norm($hn)]=$id;
- $keys[$id]=array_values(array_filter(array_unique([nm_norm($hnm),nm_norm($r['name']),filter_var($r['host'],FILTER_VALIDATE_IP)?'':nm_norm($r['host'])])));
+ $keys[$id]=[]; foreach([nm_norm($hnm),nm_norm($r['name']),filter_var($r['host'],FILTER_VALIDATE_IP)?'':nm_norm($r['host'])] as $kq){ if($kq==='') continue; $keys[$id][]=$kq; $k2=preg_replace('/[-_ ]?vm$/i','',$kq); if($k2!==''&&$k2!==$kq) $keys[$id][]=$k2; } $keys[$id]=array_values(array_unique($keys[$id]));
  foreach((array)($nd['nbr']??[]) as $x) $nbrs[$id][]=$x;
  foreach((array)($nd['fdb']??[]) as $x) $fdbs[$id][]=$x;
  if(!empty($nd['fdbn'])) $fdbn[$id]=$nd['fdbn'];

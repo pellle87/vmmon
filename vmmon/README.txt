@@ -279,3 +279,5 @@ v3.39: Map: devices are labelled with their hostname (from SNMP/agent) instead o
 v3.40: Map: VM matching also ignores a trailing "-VM" in the device name (for example SKOOGS-VM matches the Proxmox VM SKOOGS). No migration.
 
 v3.41: Map: VMs are now matched to their hypervisor by MAC address (the VM network cards read from the Proxmox API, matched against the guest interfaces or ARP) instead of by name, so it works whatever the VM or host is called. Name matching remains as a fallback; the -VM suffix rule from v3.40 was removed. No migration.
+
+v3.42: Alert templates: the preview and the test message now use sample data that fits the kind of alert (resource, device down, users, service/certificate, Zabbix, hardware, interface, virtualization, storage, BMC, Home Assistant, system, trap/syslog, brute force). The kind is picked from the template name, or manually with a new selector above the preview. Map: FQDN hostnames are shortened to the first label. No migration.

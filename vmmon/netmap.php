@@ -21,7 +21,7 @@ foreach($rows as $r){ $id=(int)$r['id']; $nd=json_decode((string)$r['nw_data'],t
  $role=$r['nw_type']?(string)($r['nw_role']?:'switch'):($r['hv_type']?'host':'server');
  $st='ok'; if(!(int)$r['enabled']) $st='dis'; elseif($r['nw_type']&&$r['nw_status']==='down') $st='bad'; elseif($r['hv_type']&&$r['hv_status']==='down') $st='bad'; elseif(!empty($png[$id])) $st='bad';
  $url=($r['nw_type']?'netdev.php?id=':($r['hv_type']?'host.php?id=':'server.php?id=')).$id;
- $hnm=trim((string)($nd['hostname']??($inf['hostname']??''))); $nodes[$id]=['id'=>(string)$id,'n'=>($hnm!==''?$hnm:$r['name']),'k'=>$role,'st'=>$st,'u'=>$url,'ip'=>filter_var($r['host'],FILTER_VALIDATE_IP)?$r['host']:''];
+ $hnm=trim((string)($nd['hostname']??($inf['hostname']??''))); $nodes[$id]=['id'=>(string)$id,'n'=>($hnm!==''?(filter_var($hnm,FILTER_VALIDATE_IP)?$hnm:explode('.',$hnm)[0]):$r['name']),'k'=>$role,'st'=>$st,'u'=>$url,'ip'=>filter_var($r['host'],FILTER_VALIDATE_IP)?$r['host']:''];
  $byName[nm_norm($r['name'])]=$id; if(!filter_var($r['host'],FILTER_VALIDATE_IP)) $byName[nm_norm($r['host'])]=$id; else $byIp[$r['host']]=$id;
  foreach([$nd['hostname']??'',$inf['hostname']??''] as $hn) if($hn!=='') $byName[nm_norm($hn)]=$id;
  $keys[$id]=array_values(array_filter(array_unique([nm_norm($hnm),nm_norm($r['name']),filter_var($r['host'],FILTER_VALIDATE_IP)?'':nm_norm($r['host'])])));

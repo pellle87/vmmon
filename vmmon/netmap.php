@@ -16,7 +16,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 // ---- bygg graf ----
 $rows=$pdo->query("SELECT id,name,host,os_info,info,hv_data,nw_type,nw_role,hv_type,nw_data,nw_status,hv_status,enabled,dash_hidden,(maint_until IS NOT NULL AND maint_until>NOW()) maint FROM servers WHERE is_services=0 ORDER BY name")->fetchAll();
 $png=[]; try{ foreach($pdo->query("SELECT server_id,MAX(last_status='down') d FROM server_checks WHERE kind='ping' AND enabled=1 AND mon_up=1 GROUP BY server_id") as $r) $png[(int)$r['server_id']]=(int)$r['d']; }catch(Throwable $e){}
-$byName=[]; $byIp=[]; $byMac=[]; $nodes=[]; $nbrs=[]; $fdbs=[]; $vmhost=[]; $arpm=[]; $fdbn=[]; $macif=[]; $keys=[];
+$byName=[]; $byIp=[]; $byMac=[]; $nodes=[]; $nbrs=[]; $fdbs=[]; $vmhost=[]; $arpm=[]; $fdbn=[]; $macif=[]; $keys=[]; $vmmac=[];
 foreach($rows as $r){ $id=(int)$r['id']; $nd=json_decode((string)$r['nw_data'],true)?:[]; $inf=json_decode((string)$r['info'],true)?:[];
  $role=$r['nw_type']?(string)($r['nw_role']?:'switch'):($r['hv_type']?'host':'server');
  $st='ok'; if(!(int)$r['enabled']) $st='dis'; elseif($r['nw_type']&&$r['nw_status']==='down') $st='bad'; elseif($r['hv_type']&&$r['hv_status']==='down') $st='bad'; elseif(!empty($png[$id])) $st='bad';
@@ -24,12 +24,12 @@ foreach($rows as $r){ $id=(int)$r['id']; $nd=json_decode((string)$r['nw_data'],t
  $hnm=trim((string)($nd['hostname']??($inf['hostname']??''))); $nodes[$id]=['id'=>(string)$id,'n'=>($hnm!==''?$hnm:$r['name']),'k'=>$role,'st'=>$st,'u'=>$url,'ip'=>filter_var($r['host'],FILTER_VALIDATE_IP)?$r['host']:''];
  $byName[nm_norm($r['name'])]=$id; if(!filter_var($r['host'],FILTER_VALIDATE_IP)) $byName[nm_norm($r['host'])]=$id; else $byIp[$r['host']]=$id;
  foreach([$nd['hostname']??'',$inf['hostname']??''] as $hn) if($hn!=='') $byName[nm_norm($hn)]=$id;
- $keys[$id]=[]; foreach([nm_norm($hnm),nm_norm($r['name']),filter_var($r['host'],FILTER_VALIDATE_IP)?'':nm_norm($r['host'])] as $kq){ if($kq==='') continue; $keys[$id][]=$kq; $k2=preg_replace('/[-_ ]?vm$/i','',$kq); if($k2!==''&&$k2!==$kq) $keys[$id][]=$k2; } $keys[$id]=array_values(array_unique($keys[$id]));
+ $keys[$id]=array_values(array_filter(array_unique([nm_norm($hnm),nm_norm($r['name']),filter_var($r['host'],FILTER_VALIDATE_IP)?'':nm_norm($r['host'])])));
  foreach((array)($nd['nbr']??[]) as $x) $nbrs[$id][]=$x;
  foreach((array)($nd['fdb']??[]) as $x) $fdbs[$id][]=$x;
  if(!empty($nd['fdbn'])) $fdbn[$id]=$nd['fdbn'];
  foreach((array)($nd['arp']??[]) as $ai=>$am) if(!isset($arpm[$ai])) $arpm[$ai]=$am;
- if($r['hv_type']) foreach((array)(json_decode((string)$r['hv_data'],true)['vms']??[]) as $vv){ $vk=nm_norm($vv['n']??''); if($vk!==''&&!isset($vmhost[$vk])) $vmhost[$vk]=$id; } }
+ if($r['hv_type']) foreach((array)(json_decode((string)$r['hv_data'],true)['vms']??[]) as $vv){ $vk=nm_norm($vv['n']??''); if($vk!==''&&!isset($vmhost[$vk])) $vmhost[$vk]=$id; foreach((array)($vv['nics']??[]) as $vn) if(!empty($vn['mac'])) $vmmac[strtolower((string)$vn['mac'])]=$id; } }
 $mc=[]; try{ foreach($pdo->query("SELECT server_id,LOWER(mac) mac,name FROM net_if WHERE mac<>'' AND mac<>'00:00:00:00:00:00'") as $r){ $mc[$r['mac']][(int)$r['server_id']]=1; $macif[$r['mac']][(int)$r['server_id']]=(string)$r['name']; } }catch(Throwable $e){} foreach($mc as $m=>$s) if(count($s)===1) $byMac[$m]=array_key_first($s);
 $links=[]; $unk=[];
 foreach($nbrs as $a=>$list) foreach($list as $x){ $b=null; if(!empty($x['rm'])) $b=$byMac[strtolower($x['rm'])]??null; if($b===null&&!empty($x['ri'])) $b=$byIp[$x['ri']]??null; if($b===null&&($x['rn']??'')!=='') $b=$byName[nm_norm($x['rn'])]??null;
@@ -43,6 +43,8 @@ $pn=[]; try{ foreach($pdo->query("SELECT server_id,if_index,name FROM net_if") a
 $isVm=[]; $manVm=[]; foreach($nodes as $id=>$nd){ if(!is_int($id)||$nd['k']!=='server') continue; foreach($keys[$id]??[] as $kk) if(isset($vmhost[$kk])&&$vmhost[$kk]!==$id){ $isVm[$id]=$vmhost[$kk]; break; } }
 foreach(nm_jget('netmap_links') as $L) if(($L['k']??'')==='vm'&&isset($nodes[(int)$L['a']],$nodes[(int)$L['b']])) { $isVm[(int)$L['b']]=(int)$L['a']; $manVm[(int)$L['b']]=1; }
 $hasMac=array_flip(array_values($byMac)); foreach($nodes as $id=>$nd){ if(!is_int($id)||isset($hasMac[$id])||in_array($nd['k'],['switch','router','ap'],true)||$nd['ip']===''||empty($arpm[$nd['ip']])) continue; if(!isset($byMac[$arpm[$nd['ip']]])) $byMac[$arpm[$nd['ip']]]=$id; }
+// VM-nätkortens MAC (Proxmox-API) -> gästen som äger MAC:en (via dess gränssnitt eller ARP): säkrare än namn
+foreach($vmmac as $vm_m=>$vm_h){ $vm_t=$byMac[$vm_m]??null; if($vm_t!==null&&is_int($vm_t)&&$vm_t!==$vm_h&&!isset($manVm[$vm_t])) $isVm[$vm_t]=$vm_h; }
 // En MAC lärs på varje switch längs vägen; den riktiga porten är den med färst MAC (kantporten), inte upplänkarna
 $best=[]; foreach($fdbs as $sw=>$list){ $lldpPorts=[]; foreach($nbrs[$sw]??[] as $x) if(!empty($x['li'])) $lldpPorts[(int)$x['li']]=1;
  foreach($list as $x){ if(isset($lldpPorts[(int)$x['i']])||(int)$x['c']>40||!isset($byMac[$x['m']])||$byMac[$x['m']]===$sw) continue; $m=$x['m']; $c=(int)$x['c'];

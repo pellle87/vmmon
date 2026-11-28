@@ -277,3 +277,5 @@ v3.38: Mobile: tables (column-managed tables) use natural column widths and scro
 v3.39: Map: devices are labelled with their hostname (from SNMP/agent) instead of the display name, and VMs are matched to their hypervisor on hostname as well as name, so VMs named after their hostname in Proxmox are found. No migration.
 
 v3.40: Map: VM matching also ignores a trailing "-VM" in the device name (for example SKOOGS-VM matches the Proxmox VM SKOOGS). No migration.
+
+v3.41: Map: VMs are now matched to their hypervisor by MAC address (the VM network cards read from the Proxmox API, matched against the guest interfaces or ARP) instead of by name, so it works whatever the VM or host is called. Name matching remains as a fallback; the -VM suffix rule from v3.40 was removed. No migration.
